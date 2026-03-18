@@ -107,11 +107,48 @@ def get_dashboard_stats():
         ).first()
         
         # Risk level distribution
-        risk_distribution = db.session.query(
-            Region.risk_level, db.func.count(Region.id)
-        ).group_by(Region.risk_level).all()
-        
-        risk_levels = {level: count for level, count in risk_distribution}
+        # Prefer ML/rule-based predictions when available; fall back to Region.risk_level if empty.
+        risk_levels = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+        try:
+            from services.risk_calculator import RiskCalculator
+
+            regions = Region.query.all()
+            for region in regions:
+                weather = (
+                    WeatherData.query.filter_by(region_id=region.id)
+                    .order_by(WeatherData.timestamp.desc())
+                    .limit(3)
+                    .all()
+                )
+                if not weather:
+                    continue
+                avg_temp = sum(w.temperature for w in weather) / len(weather)
+                avg_humidity = sum(w.humidity for w in weather) / len(weather)
+                total_rainfall = sum(w.rainfall for w in weather)
+
+                prediction = RiskCalculator.predict_risk(
+                    {
+                        "temperature": avg_temp,
+                        "humidity": avg_humidity,
+                        "rainfall": total_rainfall,
+                        "region_name": region.name,
+                    }
+                )
+                rl = (prediction.get("risk_level") or "low").lower()
+                if rl not in risk_levels:
+                    risk_levels[rl] = 0
+                risk_levels[rl] += 1
+        except Exception:
+            # Fall back to stored Region risk levels
+            risk_distribution = (
+                db.session.query(Region.risk_level, db.func.count(Region.id))
+                .group_by(Region.risk_level)
+                .all()
+            )
+            for level, count in risk_distribution:
+                if not level:
+                    continue
+                risk_levels[str(level).lower()] = int(count)
         
         return jsonify({
             'success': True,
@@ -185,6 +222,69 @@ def get_weather_trends():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@api.route('/alert-trends', methods=['GET'])
+def get_alert_trends():
+    """Get alert trends (daily counts) for the past period"""
+    try:
+        days = request.args.get('days', 30, type=int)
+        days = max(1, min(days, 365))
+
+        since_dt = datetime.utcnow() - timedelta(days=days - 1)
+        since_date = since_dt.date()
+        today = datetime.utcnow().date()
+        labels = []
+        d = since_date
+        while d <= today:
+            labels.append(d.isoformat())
+            d = d + timedelta(days=1)
+
+        rows = (
+            db.session.query(
+                db.func.date(Alert.created_at).label('date'),
+                Alert.risk_level.label('risk_level'),
+                db.func.count(Alert.id).label('count'),
+            )
+            .filter(Alert.created_at >= datetime.combine(since_date, datetime.min.time()))
+            .group_by(db.func.date(Alert.created_at), Alert.risk_level)
+            .order_by(db.func.date(Alert.created_at))
+            .all()
+        )
+
+        counts = {"low": {}, "medium": {}, "high": {}, "critical": {}}
+
+        for r in rows:
+            d = str(r.date)
+            risk = (r.risk_level or "low").lower()
+            if risk not in counts:
+                counts[risk] = {}
+            counts[risk][d] = int(r.count or 0)
+
+        def _series(level: str):
+            return [counts.get(level, {}).get(d, 0) for d in labels]
+
+        total_series = [0] * len(labels)
+        for i in range(len(labels)):
+            total_series[i] = (
+                _series("critical")[i] + _series("high")[i] + _series("medium")[i] + _series("low")[i]
+            )
+
+        chart_data = {
+            "labels": labels,
+            "datasets": [
+                {"label": "Critical", "risk_level": "critical", "data": _series("critical")},
+                {"label": "High", "risk_level": "high", "data": _series("high")},
+                {"label": "Medium", "risk_level": "medium", "data": _series("medium")},
+                {"label": "Low", "risk_level": "low", "data": _series("low")},
+                {"label": "Total", "risk_level": "total", "data": total_series},
+            ],
+        }
+
+        return jsonify({"success": True, "period_days": days, "chart_data": chart_data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @api.route('/system-status', methods=['GET'])
 def get_system_status():

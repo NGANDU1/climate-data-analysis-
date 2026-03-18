@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         :root {
@@ -695,10 +696,7 @@
                     </button>
                 </div>
                 <div class="chart-container">
-                    <!-- Chart will be rendered here -->
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #64748b;">
-                        <i class="fas fa-chart-area" style="font-size: 48px; opacity: 0.3;"></i>
-                    </div>
+                    <canvas id="alerts-trend-chart" style="width:100%;height:100%;"></canvas>
                 </div>
             </div>
 
@@ -710,10 +708,7 @@
                     </button>
                 </div>
                 <div class="chart-container">
-                    <!-- Chart will be rendered here -->
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #64748b;">
-                        <i class="fas fa-chart-pie" style="font-size: 48px; opacity: 0.3;"></i>
-                    </div>
+                    <canvas id="risk-distribution-chart" style="width:100%;height:100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -815,6 +810,9 @@
             if (el) el.textContent = value;
         }
 
+        let alertsTrendChart = null;
+        let riskDistributionChart = null;
+
         async function loadDashboardStats() {
             const result = await fetchJson(`${API_BASE}/admin/dashboard`);
             if (!result.success || !result.stats) return;
@@ -823,7 +821,96 @@
             setText('stat-subscribers', (stats.active_users ?? 0).toLocaleString());
             setText('stat-alerts', (stats.total_alerts ?? 0).toLocaleString());
             setText('stat-rainfall', `${(stats.total_rainfall_24h ?? 0).toFixed(1)}mm`);
+
+            // Risk Distribution chart from region risk levels
+            const dist = stats.risk_distribution || {};
+            const ctx = document.getElementById('risk-distribution-chart')?.getContext?.('2d');
+            if (ctx) {
+                const data = {
+                    low: Number(dist.low || 0),
+                    medium: Number(dist.medium || 0),
+                    high: Number(dist.high || 0),
+                    critical: Number(dist.critical || 0),
+                };
+
+                if (riskDistributionChart) riskDistributionChart.destroy();
+                riskDistributionChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        datasets: [{
+                            data: [data.low, data.medium, data.high, data.critical],
+                            backgroundColor: ['#10b981', '#34d399', '#f97316', '#ef4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '62%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
             setText('stat-temperature', `${(stats.avg_temperature ?? 0).toFixed(1)}°C`);
+        }
+
+        async function loadAlertTrends() {
+            const result = await fetchJson(`${API_BASE}/admin/alert-trends?days=30`);
+            if (!result.success || !result.chart_data) return;
+
+            const chartData = result.chart_data;
+            const labels = chartData.labels || [];
+            const datasets = (chartData.datasets || []).map((d) => {
+                const risk = (d.risk_level || '').toLowerCase();
+                const colorByRisk = {
+                    critical: '#ef4444',
+                    high: '#f97316',
+                    medium: '#34d399',
+                    low: '#10b981',
+                    total: '#0ea5e9',
+                };
+                const c = colorByRisk[risk] || '#94a3b8';
+                const isTotal = risk === 'total';
+                return {
+                    label: d.label || risk,
+                    data: d.data || [],
+                    borderColor: c,
+                    backgroundColor: isTotal ? 'transparent' : (c + '33'),
+                    tension: 0.6,
+                    cubicInterpolationMode: 'monotone',
+                    fill: isTotal ? false : 'origin',
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    borderWidth: isTotal ? 3 : 2,
+                    borderDash: isTotal ? [6, 4] : undefined,
+                };
+            });
+
+            const tctx = document.getElementById('alerts-trend-chart')?.getContext?.('2d');
+            if (!tctx) return;
+            if (alertsTrendChart) alertsTrendChart.destroy();
+            alertsTrendChart = new Chart(tctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    },
+                    elements: {
+                        line: { capBezierPoints: true },
+                    },
+                    animation: {
+                        duration: 900,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
         }
 
         async function loadRecentActivity() {
@@ -899,7 +986,7 @@
         (async () => {
             if (!requireAuth()) return;
             try {
-                await Promise.all([loadDashboardStats(), loadRecentActivity()]);
+                await Promise.all([loadDashboardStats(), loadAlertTrends(), loadRecentActivity()]);
             } catch (err) {
                 console.error(err);
                 const box = document.getElementById('data-error');

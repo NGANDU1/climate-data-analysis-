@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request, Response
+import csv
+import io
 from models.region import Region
 from models.weather_data import WeatherData
 from services.risk_calculator import RiskCalculator
@@ -100,3 +102,62 @@ def generate_summary(p):
             if x['risk_level'] in ['critical', 'high']
         ]
     }
+
+
+@api.route('/export', methods=['GET'])
+def export_predictions():
+    """
+    Export latest risk predictions as CSV (default) or JSON.
+    Query params:
+      - format=csv|json
+    """
+    try:
+        fmt = (request.args.get('format') or 'csv').lower()
+        resp = predict_risk()
+        resp_obj = resp[0] if isinstance(resp, tuple) else resp
+        payload = resp_obj.get_json() if hasattr(resp_obj, 'get_json') else None
+        if not payload or not payload.get('success'):
+            return jsonify({'success': False, 'message': 'Could not generate predictions'}), 500
+
+        if fmt == 'json':
+            return jsonify(payload)
+
+        predictions = payload.get('predictions') or []
+        rows = []
+        for p in predictions:
+            cc = p.get('current_conditions') or {}
+            rows.append(
+                {
+                    'region_id': p.get('region_id'),
+                    'region_name': p.get('region_name'),
+                    'risk_level': p.get('risk_level'),
+                    'disaster_type': p.get('disaster_type'),
+                    'confidence_score': p.get('confidence_score'),
+                    'temperature': cc.get('temperature'),
+                    'humidity': cc.get('humidity'),
+                    'rainfall': cc.get('rainfall'),
+                }
+            )
+
+        buf = io.StringIO()
+        fieldnames = [
+            'region_id',
+            'region_name',
+            'risk_level',
+            'disaster_type',
+            'confidence_score',
+            'temperature',
+            'humidity',
+            'rainfall',
+        ]
+        w = csv.DictWriter(buf, fieldnames=fieldnames)
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+
+        out = Response(buf.getvalue(), mimetype='text/csv; charset=utf-8')
+        out.headers['Content-Disposition'] = 'attachment; filename=\"risk_predictions.csv\"'
+        return out
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

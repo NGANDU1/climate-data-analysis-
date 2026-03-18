@@ -273,6 +273,9 @@ List recent training runs and logs/metrics.
 ### GET /api/admin/monitoring
 Returns model file status and last training accuracy (validation accuracy when available).
 
+### GET /api/admin/alert-trends?days=30
+Returns daily alert counts by risk level for charting.
+
 ---
 
 ## Admin - External Sources (Open Data)
