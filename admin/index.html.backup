@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Climate EWS Zambia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../templatemo-glass-admin-style.css">
+    <style>
+        :root {
+            --climate-green: #10b981;
+            --climate-green-dark: #059669;
+        }
+        
+        .login-page {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+        }
+        
+        .login-logo {
+            background: linear-gradient(135deg, var(--climate-green), var(--climate-green-dark));
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--climate-green), var(--climate-green-dark));
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
+        }
+        
+        .forgot-link:hover {
+            color: var(--climate-green);
+        }
+        
+        .login-footer a:hover {
+            color: var(--climate-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <button class="theme-toggle-float" id="theme-toggle">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2"/><path d="M12 20v2"/>
+            <path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/>
+            <path d="M2 12h2"/><path d="M20 12h2"/>
+            <path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <div class="login-page">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-logo">🌦️</div>
+                    <h1 class="login-title">Admin Login</h1>
+                    <p class="login-subtitle">Climate Early Warning System - Zambia</p>
+                </div>
+
+                <form id="login-form" data-validate data-redirect="dashboard.html">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" class="form-input" id="username" placeholder="Enter your username" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-input" id="password" placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Remember me
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Login to Dashboard
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>System Information</span>
+                </div>
+
+                <div style="text-align: center; color: var(--text-muted); font-size: 13px;">
+                    <p style="margin-bottom: 8px;"><strong>Default Credentials:</strong></p>
+                    <p>Username: <code style="color: var(--climate-yellow);">admin</code></p>
+                    <p>Password: <code style="color: var(--climate-yellow);">admin123</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer login-page">
+        <p>Copyright © 2026 Climate EWS Zambia | <a href="../index.html">Back to Public Dashboard</a></p>
+    </footer>
+
+    <script src="../templatemo-glass-admin-script.js"></script>
+    <script>
+        // Admin login handler
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('../api/adminLogin.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Store token in sessionStorage
+                    sessionStorage.setItem('adminToken', result.data.token);
+                    sessionStorage.setItem('adminUser', JSON.stringify(result.data));
+                    
+                    // Show success message
+                    alert('Login successful! Redirecting to dashboard...');
+                    
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Login failed: ' + (result.error || 'Invalid credentials'));
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Failed to connect to server. Please ensure XAMPP is running.');
+            }
+        });
+    </script>
+</body>
+</html>

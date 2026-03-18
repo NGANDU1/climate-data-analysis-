@@ -1,0 +1,102 @@
+from flask import Blueprint, jsonify
+from models.region import Region
+from models.weather_data import WeatherData
+from services.risk_calculator import RiskCalculator
+
+api = Blueprint('risk', __name__)
+
+
+@api.route('/predict', methods=['GET'])
+def predict_risk():
+    try:
+        regions = Region.query.all()
+        predictions = []
+
+        for region in regions:
+            weather = WeatherData.query.filter_by(region_id=region.id)\
+                .order_by(WeatherData.timestamp.desc())\
+                .limit(3).all()
+
+            if not weather:
+                continue
+
+            avg_temp = sum(w.temperature for w in weather) / len(weather)
+            avg_humidity = sum(w.humidity for w in weather) / len(weather)
+            total_rainfall = sum(w.rainfall for w in weather)
+
+            prediction = RiskCalculator.predict_risk({
+                'temperature': avg_temp,
+                'humidity': avg_humidity,
+                'rainfall': total_rainfall,
+                'region_name': region.name
+            })
+
+            predictions.append({
+                'region_id': region.id,
+                'region_name': region.name,
+                'risk_level': prediction['risk_level'],
+                'disaster_type': prediction['disaster_type'],
+                'confidence_score': prediction['confidence_score'],
+                'current_conditions': {
+                    'temperature': round(avg_temp, 1),
+                    'humidity': round(avg_humidity, 1),
+                    'rainfall': round(total_rainfall, 1)
+                },
+                'alerts': prediction['alerts'],
+                'recommendations': prediction['recommendations']
+            })
+
+        summary = generate_summary(predictions)
+
+        return jsonify({
+            'success': True,
+            'predictions': predictions,
+            'summary': summary
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@api.route('/predict/<int:region_id>', methods=['GET'])
+def predict_single_region(region_id):
+    try:
+        region = Region.query.get_or_404(region_id)
+
+        weather = WeatherData.query.filter_by(region_id=region_id)\
+            .order_by(WeatherData.timestamp.desc())\
+            .first()
+
+        if not weather:
+            return jsonify({'error': 'No weather data available'}), 404
+
+        prediction = RiskCalculator.predict_risk(weather.to_dict())
+
+        return jsonify({
+            'success': True,
+            'region': region.name,
+            'prediction': prediction
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+def generate_summary(p):
+    c = sum(1 for x in p if x['risk_level'] == 'critical')
+    h = sum(1 for x in p if x['risk_level'] == 'high')
+    m = sum(1 for x in p if x['risk_level'] == 'medium')
+    l = sum(1 for x in p if x['risk_level'] == 'low')
+
+    return {
+        'overall_risk_level': 'critical' if c > 0 else 'high' if h > 0 else 'medium' if m > 0 else 'low',
+        'critical_regions': c,
+        'high_risk_regions': h,
+        'medium_risk_regions': m,
+        'low_risk_regions': l,
+        'total_regions_monitored': len(p),
+        'affected_region_names': [
+            x['region_name'] for x in p
+            if x['risk_level'] in ['critical', 'high']
+        ]
+    }

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Climate EWS Zambia</title>
+    <meta name="description" content="Comprehensive climate analytics and data visualization for Zambia">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="templatemo-glass-admin-style.css">
+    
+    <style>
+        /* Analytics-specific styles */
+        .analytics-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .analytics-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .analytics-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            padding: 32px;
+        }
+
+        .chart-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .chart-card-full {
+            grid-column: span 2;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-btn:hover {
+            border-color: var(--emerald);
+            color: var(--emerald);
+        }
+
+        .chart-btn.active {
+            background: var(--emerald);
+            border-color: var(--emerald);
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-container-large {
+            height: 400px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            padding: 32px;
+        }
+
+        .stat-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--emerald);
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .risk-distribution {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .risk-item {
+            text-align: center;
+            padding: 16px;
+            background: rgba(16, 185, 129, 0.05);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .risk-percentage {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .risk-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-low { color: var(--climate-green); }
+        .risk-medium { color: var(--climate-orange); }
+        .risk-high { color: #f97316; }
+        .risk-critical { color: var(--climate-red); }
+
+        .explorer-controls {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .explorer-controls label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .explorer-controls select,
+        .explorer-controls input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: rgba(15, 23, 42, 0.55);
+            color: var(--text-primary);
+            outline: none;
+        }
+        .explorer-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .btn-mini {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: rgba(15, 23, 42, 0.55);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-mini.primary {
+            background: var(--emerald);
+            border-color: var(--emerald);
+            color: white;
+        }
+        .explorer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        .explorer-table th,
+        .explorer-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+        .mono {
+            font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+        }
+        @media (max-width: 1200px) {
+            .explorer-controls { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">C</div>
+                <span class="logo-text">Climate EWS</span>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-section">
+                    <span class="nav-section-title">Main Menu</span>
+                    <ul>
+                        <li class="nav-item">
+                            <a href="index.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="analytics.html" class="nav-link active">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                                </svg>
+                                Analytics
+                                <span class="nav-badge">New</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                </svg>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <ul>
+                        <li class="nav-item">
+                            <a href="login.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">CE</div>
+                    <div class="user-info">
+                        <div class="user-name">Climate EWS</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-wrapper">
+            <!-- Header -->
+            <header class="navbar analytics-header">
+                <div>
+                    <h1 class="analytics-title">Climate Analytics Dashboard</h1>
+                    <p class="analytics-subtitle">Comprehensive weather patterns and risk analysis across Zambia</p>
+                </div>
+            </header>
+
+            <!-- Stats Row -->
+            <section class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-label">Avg. Temperature (7 days)</div>
+                    <div class="stat-value">27.5°C</div>
+                    <div class="stat-change positive">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                        +2.3°C from last week
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">Total Rainfall (24h)</div>
+                    <div class="stat-value">125mm</div>
+                    <div class="stat-change positive">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                        +18% increase
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">Active Alerts</div>
+                    <div class="stat-value" style="color: var(--climate-orange);">8</div>
+                    <div class="stat-change negative">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+                        3 new today
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">Regions Monitored</div>
+                    <div class="stat-value">10/10</div>
+                    <div class="stat-change" style="color: var(--text-muted);">
+                        All systems operational
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Grid -->
+            <section class="charts-grid">
+                <!-- Data Explorer (Search / Filter / Download) -->
+                <div class="chart-card chart-card-full">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Climate Data Explorer</h3>
+                            <p class="chart-subtitle">Filter by region, variable, and date range. Download results or view a simple forecast.</p>
+                        </div>
+                    </div>
+
+                    <div class="explorer-controls">
+                        <div>
+                            <label for="ex-region">Region</label>
+                            <select id="ex-region">
+                                <option value="">National (Average)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ex-variable">Variable</label>
+                            <select id="ex-variable">
+                                <option value="rainfall">Rainfall</option>
+                                <option value="temperature">Temperature</option>
+                                <option value="humidity">Humidity</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ex-start">Start</label>
+                            <input id="ex-start" type="date">
+                        </div>
+                        <div>
+                            <label for="ex-end">End</label>
+                            <input id="ex-end" type="date">
+                        </div>
+                        <div>
+                            <label for="ex-interval">Interval</label>
+                            <select id="ex-interval">
+                                <option value="daily">Daily</option>
+                                <option value="hourly">Hourly</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ex-method">Forecast</label>
+                            <select id="ex-method">
+                                <option value="naive">Naive</option>
+                                <option value="arima">ARIMA (if installed)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="explorer-actions">
+                        <button class="btn-mini primary" id="ex-apply">Apply</button>
+                        <button class="btn-mini" id="ex-download">Download CSV</button>
+                        <div class="mono" id="ex-status"></div>
+                    </div>
+
+                    <div class="chart-container chart-container-large">
+                        <canvas id="explorerChart"></canvas>
+                    </div>
+
+                    <table class="explorer-table" id="ex-table">
+                        <thead><tr><th>Date</th><th>Value</th><th>Type</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Temperature Trend Chart -->
+                <div class="chart-card chart-card-full">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Temperature Trends Across Provinces</h3>
+                            <p class="chart-subtitle">7-day average temperature comparison</p>
+                        </div>
+                        <div class="chart-actions">
+                            <button class="chart-btn">7D</button>
+                            <button class="chart-btn active">30D</button>
+                            <button class="chart-btn">90D</button>
+                        </div>
+                    </div>
+                    <div class="chart-container chart-container-large">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Risk Distribution Pie Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Risk Level Distribution</h3>
+                            <p class="chart-subtitle">Current risk levels across all regions</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="riskPieChart"></canvas>
+                    </div>
+                    <div class="risk-distribution">
+                        <div class="risk-item">
+                            <div class="risk-percentage risk-low">40%</div>
+                            <div class="risk-label">Low Risk</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-percentage risk-medium">30%</div>
+                            <div class="risk-label">Medium</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-percentage risk-high">20%</div>
+                            <div class="risk-label">High</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-percentage risk-critical">10%</div>
+                            <div class="risk-label">Critical</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rainfall Comparison Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Rainfall by Region</h3>
+                            <p class="chart-subtitle">Monthly rainfall comparison (mm)</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="rainfallBarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Humidity Gauge Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Humidity Levels</h3>
+                            <p class="chart-subtitle">Average humidity percentage</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="humidityGaugeChart"></canvas>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--climate-green);"></div>
+                            <span>Normal (40-60%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--climate-orange);"></div>
+                            <span>Elevated (60-80%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--climate-red);"></div>
+                            <span>High (>80%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disaster Type Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Disaster Type Analysis</h3>
+                            <p class="chart-subtitle">Types of disasters detected this month</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="disasterDoughnutChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Wind Speed & Pressure -->
+                <div class="chart-card chart-card-full">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Wind Speed & Atmospheric Pressure</h3>
+                            <p class="chart-subtitle">Real-time monitoring across regions</p>
+                        </div>
+                        <div class="chart-actions">
+                            <button class="chart-btn active">All Regions</button>
+                            <button class="chart-btn">Lusaka</button>
+                            <button class="chart-btn">Copperbelt</button>
+                        </div>
+                    </div>
+                    <div class="chart-container chart-container-large">
+                        <canvas id="windPressureChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Initialize all charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Color scheme - Green theme (NO YELLOW)
+            const colors = {
+                emerald: '#10b981',
+                emeraldLight: '#34d399',
+                emeraldDark: '#059669',
+                forestGreen: '#065f46',
+                mint: '#a7f3d0',
+                sage: '#6ee7b7',
+                blue: '#0ea5e9',
+                orange: '#f97316',
+                red: '#dc2626',
+                purple: '#a855f7'
+            };
+
+            // Temperature Line Chart
+            const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+            new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Lusaka', 'Copperbelt', 'Central', 'Eastern', 'Luapula', 'Northern', 'North-Western', 'Southern', 'Western', 'Muchinga'],
+                    datasets: [{
+                        label: 'Week 1',
+                        data: [28.5, 26.3, 27.8, 29.1, 25.6, 24.8, 27.2, 30.1, 29.5, 26.7],
+                        borderColor: colors.emerald,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Week 2',
+                        data: [29.2, 27.1, 28.5, 30.3, 26.2, 25.4, 28.0, 31.2, 30.1, 27.5],
+                        borderColor: colors.emeraldLight,
+                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Week 3',
+                        data: [27.8, 25.9, 27.2, 28.7, 25.1, 24.3, 26.8, 29.5, 28.9, 26.2],
+                        borderColor: colors.blue,
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 20,
+                            max: 35,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Risk Pie Chart
+            const riskCtx = document.getElementById('riskPieChart').getContext('2d');
+            new Chart(riskCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk', 'Critical'],
+                    datasets: [{
+                        data: [4, 3, 2, 1],
+                        backgroundColor: [
+                            colors.emerald,
+                            colors.mint,
+                            colors.orange,
+                            colors.red
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Rainfall Bar Chart
+            const rainCtx = document.getElementById('rainfallBarChart').getContext('2d');
+            new Chart(rainCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lusaka', 'Copperbelt', 'Central', 'Eastern', 'Luapula', 'Northern', 'North-Western', 'Southern', 'Western', 'Muchinga'],
+                    datasets: [{
+                        label: 'Rainfall (mm)',
+                        data: [145, 98, 132, 167, 89, 76, 112, 156, 178, 95],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: colors.emerald,
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Humidity Gauge Chart (simulated with doughnut)
+            const humidCtx = document.getElementById('humidityGaugeChart').getContext('2d');
+            new Chart(humidCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal', 'Elevated', 'High'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            colors.emerald,
+                            colors.orange,
+                            colors.red
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Disaster Type Doughnut Chart
+            const disasterCtx = document.getElementById('disasterDoughnutChart').getContext('2d');
+            new Chart(disasterCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Flood', 'Drought', 'Extreme Heat', 'Storm', 'General'],
+                    datasets: [{
+                        data: [35, 25, 20, 12, 8],
+                        backgroundColor: [
+                            colors.blue,
+                            colors.forestGreen,
+                            colors.orange,
+                            colors.purple,
+                            colors.emerald
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Wind Speed & Pressure Dual Chart
+            const windCtx = document.getElementById('windPressureChart').getContext('2d');
+            new Chart(windCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Wind Speed (km/h)',
+                        data: [15.2, 18.5, 12.8, 22.3, 19.7, 16.4, 14.9],
+                        borderColor: colors.emerald,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Pressure (hPa)',
+                        data: [1015, 1013, 1016, 1012, 1014, 1015, 1013],
+                        borderColor: colors.blue,
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (km/h)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Pressure (hPa)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // =============================
+            // Climate Data Explorer (live)
+            // =============================
+            const API_BASE = (() => {
+                const params = new URLSearchParams(window.location.search);
+                const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+                if (override) return override.replace(/\/$/, '');
+
+                const host = window.location.hostname;
+                const port = window.location.port;
+                if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') {
+                    return 'http://localhost:5000/api';
+                }
+                return '/api';
+            })();
+
+            function hasAdminSession() {
+                try {
+                    return !!window.sessionStorage.getItem('adminToken');
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            function requireViewerSession() {
+                const session = window.localStorage.getItem('userSession');
+                if (!session && !hasAdminSession()) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+            if (!requireViewerSession()) return;
+
+            const regionSelect = document.getElementById('ex-region');
+            const variableSelect = document.getElementById('ex-variable');
+            const startInput = document.getElementById('ex-start');
+            const endInput = document.getElementById('ex-end');
+            const intervalSelect = document.getElementById('ex-interval');
+            const methodSelect = document.getElementById('ex-method');
+            const statusEl = document.getElementById('ex-status');
+            const tableBody = document.querySelector('#ex-table tbody');
+
+            const exCtx = document.getElementById('explorerChart').getContext('2d');
+            const explorerChart = new Chart(exCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            function toIsoDate(d) {
+                const x = new Date(d);
+                const yyyy = x.getFullYear();
+                const mm = String(x.getMonth() + 1).padStart(2, '0');
+                const dd = String(x.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            function csvDownload(filename, rows) {
+                const header = Object.keys(rows[0] || { date: '', value: '', type: '' });
+                const lines = [header.join(',')].concat(
+                    rows.map(r =>
+                        header
+                            .map(k => String(r[k] ?? '').replaceAll('\"', '\"\"'))
+                            .map(v => `\"${v}\"`)
+                            .join(',')
+                    )
+                );
+                const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            async function loadRegions() {
+                try {
+                    const res = await fetch(`${API_BASE}/weather`);
+                    const json = await res.json();
+                    if (!json.success) return;
+                    const regions = (json.data || [])
+                        .map(r => ({ id: r.region_id, name: r.region_name }))
+                        .filter(r => r.id && r.name);
+
+                    const seen = new Set();
+                    for (const r of regions) {
+                        if (seen.has(r.id)) continue;
+                        seen.add(r.id);
+                        const opt = document.createElement('option');
+                        opt.value = String(r.id);
+                        opt.textContent = r.name;
+                        regionSelect.appendChild(opt);
+                    }
+                } catch (_) {}
+            }
+
+            async function applyExplorer() {
+                statusEl.textContent = 'Loading…';
+                tableBody.innerHTML = '';
+
+                const regionId = regionSelect.value;
+                const variable = variableSelect.value;
+                const start = startInput.value;
+                const end = endInput.value;
+                const interval = intervalSelect.value;
+
+                const params = new URLSearchParams();
+                if (regionId) params.set('region_id', regionId);
+                if (start) params.set('start', start);
+                if (end) params.set('end', end);
+                params.set('interval', interval);
+                params.set('limit', '2000');
+
+                const histRes = await fetch(`${API_BASE}/weather/history?${params.toString()}`);
+                const histJson = await histRes.json();
+                if (!histJson.success) {
+                    statusEl.textContent = `Failed: ${histJson.error || 'unknown'}`;
+                    return;
+                }
+
+                const hist = histJson.data || [];
+                const labels = hist.map(x => x.bucket);
+                const values = hist.map(x => Number(x[variable] ?? 0));
+
+                let forecast = [];
+                if (regionId) {
+                    const fParams = new URLSearchParams();
+                    fParams.set('region_id', regionId);
+                    fParams.set('variable', variable);
+                    fParams.set('days', '7');
+                    fParams.set('method', methodSelect.value);
+                    const fRes = await fetch(`${API_BASE}/predictions/forecast?${fParams.toString()}`);
+                    const fJson = await fRes.json();
+                    if (fJson.success) forecast = fJson.forecast || [];
+                }
+
+                const forecastLabels = forecast.map(x => x.date);
+                const forecastValues = forecast.map(x => Number(x.value ?? 0));
+
+                explorerChart.data.labels = labels.concat(forecastLabels);
+                explorerChart.data.datasets = [
+                    {
+                        label: `${variable} (history)`,
+                        data: values.concat(new Array(forecastValues.length).fill(null)),
+                        borderColor: colors.emerald,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.25,
+                        fill: true
+                    },
+                    {
+                        label: `${variable} (forecast)`,
+                        data: new Array(values.length).fill(null).concat(forecastValues),
+                        borderColor: colors.blue,
+                        borderDash: [6, 4],
+                        pointRadius: 2,
+                        tension: 0.25,
+                        fill: false
+                    }
+                ];
+                explorerChart.update();
+
+                const tableRows = [];
+                for (let i = 0; i < labels.length; i++) tableRows.push({ date: labels[i], value: values[i], type: 'history' });
+                for (let i = 0; i < forecastLabels.length; i++) tableRows.push({ date: forecastLabels[i], value: forecastValues[i], type: 'forecast' });
+
+                tableBody.innerHTML = tableRows.slice(-50).map(r => `<tr><td>${r.date}</td><td>${Number(r.value).toFixed(2)}</td><td>${r.type}</td></tr>`).join('');
+                statusEl.textContent = `Loaded ${hist.length} points${forecast.length ? ` + ${forecast.length} forecast` : ''}.`;
+
+                document.getElementById('ex-download').onclick = () => csvDownload(`climate_${variable}.csv`, tableRows);
+            }
+
+            const today = new Date();
+            const start = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
+            startInput.value = toIsoDate(start);
+            endInput.value = toIsoDate(today);
+
+            document.getElementById('ex-apply').addEventListener('click', applyExplorer);
+            loadRegions().then(applyExplorer);
+        });
+    </script>
+</body>
+</html>

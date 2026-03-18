@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts History - Climate EWS Zambia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="templatemo-glass-admin-style.css">
+    <style>
+        :root { --climate-green: #10b981; --climate-green-dark: #059669; --risk-low: #22c55e; --risk-medium: #34d399; --risk-high: #f97316; --risk-critical: #dc2626; }
+        .logo-text-climate { background: linear-gradient(135deg, var(--climate-green), var(--climate-white)) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; background-clip: text !important; }
+        .risk-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .risk-badge.low { background: rgba(34, 197, 94, 0.2); color: var(--risk-low); }
+        .risk-badge.medium { background: rgba(234, 179, 8, 0.2); color: var(--risk-medium); }
+        .risk-badge.high { background: rgba(249, 115, 22, 0.2); color: var(--risk-high); }
+        .risk-badge.critical { background: rgba(220, 38, 38, 0.2); color: var(--risk-critical); }
+    </style>
+</head>
+<body>
+    <div class="background"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><div class="logo" style="background: linear-gradient(135deg, #10b981, #059669);">🌦️</div><span class="logo-text logo-text-climate">Climate EWS</span></div>
+            <ul class="nav-menu">
+                <li class="nav-section"><span class="nav-section-title">Monitoring</span><ul>
+                    <li class="nav-item"><a href="index.html" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a></li>
+                    <li class="nav-item"><a href="alerts.html" class="nav-link active"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Alerts History</a></li>
+                    <li class="nav-item"><a href="subscribe.html" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Subscribe</a></li>
+                </ul></li>
+                <li class="nav-section"><span class="nav-section-title">Account</span><ul>
+                    <li class="nav-item"><a href="login.html" class="nav-link" id="logout-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</a></li>
+                </ul></li>
+            </ul>
+            <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">ZM</div><div class="user-info"><div class="user-name">Zambia EWS</div><div class="user-role">National System</div></div></div></div>
+        </aside>
+
+        <main class="main-content">
+            <nav class="navbar">
+                <div>
+                    <h1 class="page-title">Alerts History</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Past weather warnings and disaster notifications</p>
+                </div>
+                <div class="navbar-right">
+                    <button class="card-btn" onclick="loadAlerts()">Refresh</button>
+                    <a href="index.html" class="card-btn">Back to Dashboard</a>
+                </div>
+            </nav>
+
+            <section class="content-grid">
+                <div class="glass-card table-card" style="grid-column: span 1;">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">All Alerts</h2>
+                            <p class="card-subtitle">Complete history of weather warnings</p>
+                        </div>
+                        <div class="card-actions">
+                            <select class="form-input" id="filter-risk" onchange="loadAlerts()" style="padding: 8px 12px; min-width: 150px;">
+                                <option value="">All Risk Levels</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Risk Level</th>
+                                    <th>Message</th>
+                                    <th>Region</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-table-body">
+                                <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading alerts...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-card activity-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Recent Notifications</h2>
+                            <p class="card-subtitle">Latest alerts sent to users</p>
+                        </div>
+                    </div>
+                    <div class="activity-list" id="recent-alerts">
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <button class="mobile-menu-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+
+    <footer class="site-footer"><p>Copyright © 2026 Climate EWS Zambia | University Project</p></footer>
+
+    <script src="templatemo-glass-admin-script.js"></script>
+    <script>
+        const API_BASE = 'api';
+
+        async function loadAlerts() {
+            try {
+                const riskFilter = document.getElementById('filter-risk').value;
+                const url = riskFilter ? `${API_BASE}/alerts?limit=50&risk_level=${riskFilter}` : `${API_BASE}/alerts?limit=50`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    displayAlertsTable(result.data);
+                    displayRecentAlerts(result.data.slice(0, 10));
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+
+        function displayAlertsTable(alerts) {
+            const tbody = document.getElementById('alerts-table-body');
+            
+            if (!alerts || alerts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No alerts found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = alerts.map(alert => `
+                <tr>
+                    <td><span class="risk-badge ${alert.risk_level}">${alert.risk_level}</span></td>
+                    <td style="max-width: 400px;">${truncateText(alert.message, 80)}</td>
+                    <td>${alert.region_name || 'National'}</td>
+                    <td>${formatDisasterType(alert.disaster_type)}</td>
+                    <td>${formatDate(alert.created_at)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayRecentAlerts(alerts) {
+            const container = document.getElementById('recent-alerts');
+            
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px;">No recent alerts</div>';
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => {
+                const icon = getAlertIcon(alert.risk_level);
+                const timeAgo = getTimeAgo(new Date(alert.created_at));
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-avatar" style="background: linear-gradient(135deg, ${getRiskColor(alert.risk_level)}, rgba(0,0,0,0.2));">
+                            ${icon}
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text" style="color: var(--text-primary);">
+                                <strong>${alert.region_name || 'National'}</strong>: ${truncateText(alert.message, 60)}
+                            </p>
+                            <span class="activity-time">
+                                <span class="risk-badge ${alert.risk_level}" style="font-size: 10px; padding: 2px 8px; margin-right: 8px;">
+                                    ${alert.risk_level}
+                                </span>
+                                ${timeAgo}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getAlertIcon(riskLevel) {
+            const icons = { low: 'ℹ️', medium: '⚠️', high: '🚨', critical: '🆘' };
+            return icons[riskLevel] || 'ℹ️';
+        }
+
+        function getRiskColor(riskLevel) {
+            const colors = { low: '#22c55e', medium: '#eab308', high: '#f97316', critical: '#dc2626' };
+            return colors[riskLevel] || '#6b7280';
+        }
+
+        function truncateText(text, maxLength) {
+            return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDisasterType(type) {
+            return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        // Logout
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                try { window.localStorage.removeItem('userSession'); } catch (_) {}
+                window.location.href = 'home.html';
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadAlerts);
+        } else {
+            loadAlerts();
+        }
+    </script>
+</body>
+</html>

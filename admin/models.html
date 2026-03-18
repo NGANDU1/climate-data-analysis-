@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Training - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary:#10b981; --glass-border: rgba(16,185,129,0.2); --glass-bg: rgba(15,23,42,0.7); --dark:#0f172a; --gradient: linear-gradient(135deg,#10b981 0%,#059669 100%); }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:Inter,sans-serif;background:var(--dark);color:white;}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-right:1px solid var(--glass-border);padding:30px;display:flex;flex-direction:column;}
+        .sidebar-logo{display:flex;align-items:center;gap:16px;margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--glass-border);}
+        .logo-icon{width:50px;height:50px;background:var(--gradient);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+        .logo-text{font-size:20px;font-weight:900;}
+        .nav-menu{list-style:none;flex:1;}
+        .nav-section{margin-bottom:30px;}
+        .nav-section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:12px;}
+        .nav-list{list-style:none;}
+        .nav-link{display:flex;align-items:center;gap:14px;padding:14px 16px;color:#94a3b8;text-decoration:none;border-radius:12px;font-weight:700;}
+        .nav-link:hover{background:rgba(16,185,129,0.1);color:#34d399;}
+        .nav-link.active{background:var(--gradient);color:white;}
+        .main{margin-left:280px;padding:40px;}
+        .header{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid var(--glass-border);padding-bottom:18px;margin-bottom:22px;}
+        .title{font-size:34px;font-weight:900;}
+        .subtitle{color:#94a3b8;margin-top:6px;}
+        .card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:18px;padding:22px;margin-bottom:16px;}
+        .btn{padding:12px 16px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(30,41,59,0.5);color:white;cursor:pointer;font-weight:900;}
+        .btn.primary{background:var(--gradient);border:none;}
+        .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+        .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;color:#cbd5e1;white-space:pre-wrap;}
+        .pill{display:inline-flex;padding:4px 10px;border-radius:999px;background:rgba(16,185,129,0.12);color:#34d399;font-weight:900;font-size:12px;}
+        .table{width:100%;border-collapse:collapse;margin-top:12px;}
+        .table th,.table td{padding:10px;border-bottom:1px solid rgba(148,163,184,0.15);font-size:13px;text-align:left;}
+        @media(max-width:1000px){.main{margin-left:0}.sidebar{position:static;width:auto}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🤖</div>
+            <div class="logo-text">Climate EWS</div>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-section">
+                <span class="nav-section-title">Main Menu</span>
+                <ul class="nav-list">
+                    <li><a class="nav-link" href="dashboard.html"><i class="fas fa-th-large"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="data.html"><i class="fas fa-database"></i>Climate Data</a></li>
+                    <li><a class="nav-link active" href="models.html"><i class="fas fa-robot"></i>Model Training</a></li>
+                    <li><a class="nav-link" href="monitoring.html"><i class="fas fa-heart-pulse"></i>Monitoring</a></li>
+                    <li><a class="nav-link" href="reports.html"><i class="fas fa-file-export"></i>Reports</a></li>
+                    <li><a class="nav-link" href="users.html"><i class="fas fa-users"></i>Users</a></li>
+                    <li><a class="nav-link" href="../analytics.html"><i class="fas fa-chart-line"></i>Analytics</a></li>
+                </ul>
+            </li>
+            <li class="nav-section">
+                <span class="nav-section-title">System</span>
+                <ul class="nav-list">
+                    <li><a class="nav-link" href="../settings.html"><i class="fas fa-cog"></i>Settings</a></li>
+                    <li><a class="nav-link" href="/" data-action="logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <div>
+                <div class="title">Trigger Model Training</div>
+                <div class="subtitle">Run ML training (Random Forest, XGBoost, LSTM). Retrain whenever new data is uploaded.</div>
+            </div>
+            <div class="mono" id="api-base"></div>
+        </div>
+
+        <div class="card">
+            <div class="row">
+                <button class="btn primary" id="train"><i class="fas fa-play"></i> Start Training</button>
+                <button class="btn" id="refresh"><i class="fas fa-rotate"></i> Refresh</button>
+                <button class="btn" id="test-api"><i class="fas fa-plug"></i> Test API</button>
+                <span id="status" class="pill">Idle</span>
+            </div>
+            <div class="row" style="margin-top:14px;">
+                <div style="flex:1;min-width:220px;">
+                    <div class="mono">Train on a specific dataset (optional)</div>
+                    <input id="dataset-id" class="btn" style="width:100%;text-align:left;" placeholder="Dataset ID (e.g., 6)">
+                </div>
+                <div style="flex:1;min-width:220px;">
+                    <div class="mono">Sources (optional, comma-separated)</div>
+                    <input id="sources" class="btn" style="width:100%;text-align:left;" placeholder="nasa_power,upload,system">
+                </div>
+                <div style="flex:0.6;min-width:180px;">
+                    <div class="mono">Min samples</div>
+                    <input id="min-samples" class="btn" style="width:100%;text-align:left;" placeholder="50">
+                </div>
+            </div>
+            <div class="mono" style="margin-top:14px;">Training uses data from the Climate Data page because imports are stored in `weather_data`. If you synced NASA POWER, you can enter that Dataset ID here.</div>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size:18px;font-weight:900;margin-bottom:10px;">Recent Training Runs</h2>
+            <table class="table" id="runs">
+                <thead><tr><th>ID</th><th>Status</th><th>Started</th><th>Finished</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size:18px;font-weight:900;margin-bottom:10px;">Run Details</h2>
+            <div class="mono" id="details">Select a run…</div>
+            <div class="mono" id="last-error" style="margin-top:12px;color:#fca5a5;"></div>
+            <div class="mono" id="debug" style="margin-top:12px;max-height:170px;overflow:auto;border-top:1px solid rgba(16,185,129,0.2);padding-top:10px;"></div>
+        </div>
+    </main>
+
+    <script>
+        (function(){
+            'use strict';
+            const API_BASE = (() => {
+                const params = new URLSearchParams(window.location.search);
+                const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+                if (override) return override.replace(/\/$/, '');
+                const host = window.location.hostname;
+                const port = window.location.port;
+                if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') return 'http://localhost:5000/api';
+                return '/api';
+            })();
+            document.getElementById('api-base').textContent = API_BASE;
+
+            function checkAuth(){ const t=sessionStorage.getItem('adminToken'); if(!t){ window.location.href='index.html'; return false;} return true; }
+            if(!checkAuth()) return;
+
+            const statusEl = document.getElementById('status');
+            const runsBody = document.querySelector('#runs tbody');
+            const detailsEl = document.getElementById('details');
+            const errorEl = document.getElementById('last-error');
+            const debugEl = document.getElementById('debug');
+
+            function setError(msg){
+                if(!errorEl) return;
+                errorEl.textContent = msg ? ('Error: ' + msg) : '';
+            }
+
+            function log(msg){
+                const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                try { console.log(line); } catch(_) {}
+                if(!debugEl) return;
+                debugEl.textContent = (debugEl.textContent ? (debugEl.textContent + '\n') : '') + line;
+                debugEl.scrollTop = debugEl.scrollHeight;
+            }
+
+            window.addEventListener('error', (e) => {
+                log(`JS error: ${e.message || e.type}`);
+            });
+            window.addEventListener('unhandledrejection', (e) => {
+                log(`Promise rejection: ${(e.reason && (e.reason.message || String(e.reason))) || 'unknown'}`);
+            });
+
+            async function safeJson(res){
+                const text = await res.text();
+                try { return JSON.parse(text); } catch (_) { return { success:false, error:`Non-JSON response (${res.status}): ${text.slice(0,500)}` }; }
+            }
+
+            async function refresh(){
+                try{
+                    setError('');
+                    log(`Refresh clicked (API_BASE=${API_BASE})`);
+                    runsBody.innerHTML = '<tr><td colspan="5" class="mono">Loading…</td></tr>';
+                    const res = await fetch(`${API_BASE}/admin/models/training-runs`);
+                    const json = await safeJson(res);
+                    if(!json.success){ runsBody.innerHTML = `<tr><td colspan="5" class="mono">Failed: ${escapeHtml(json.error||'unknown')}</td></tr>`; setError(json.error||'failed to load'); return; }
+                    const runs = json.data || [];
+                    if(!runs.length){ runsBody.innerHTML = '<tr><td colspan="5" class="mono">No runs yet</td></tr>'; statusEl.textContent = 'Idle'; return; }
+                    runsBody.innerHTML = runs.map(r => `
+                        <tr>
+                            <td>${r.id}</td>
+                            <td><span class="pill">${escapeHtml(r.status)}</span></td>
+                            <td>${fmtDate(r.started_at)}</td>
+                            <td>${fmtDate(r.finished_at)}</td>
+                            <td><button class="btn" data-view="${r.id}"><i class="fas fa-eye"></i> View</button></td>
+                        </tr>
+                    `).join('');
+                    statusEl.textContent = runs[0].status || 'Idle';
+                } catch(e){
+                    runsBody.innerHTML = `<tr><td colspan="5" class="mono">Failed: ${escapeHtml(e.message||String(e))}</td></tr>`;
+                    setError(e.message||String(e));
+                }
+            }
+
+            async function train(){
+                try{
+                    setError('');
+                    statusEl.textContent = 'queued';
+                    log('Start Training clicked');
+                    const datasetId = (document.getElementById('dataset-id').value || '').trim();
+                    const sources = (document.getElementById('sources').value || '').trim();
+                    const minSamples = (document.getElementById('min-samples').value || '').trim();
+
+                    const payload = {};
+                    if (datasetId) payload.dataset_id = Number(datasetId);
+                    if (sources) payload.sources = sources;
+                    if (minSamples) payload.min_samples = Number(minSamples);
+
+                    const res = await fetch(`${API_BASE}/admin/models/train`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const json = await safeJson(res);
+                    if(!json.success){
+                        statusEl.textContent = 'failed';
+                        setError(json.error || json.message || 'Training failed');
+                        log(`Train failed: ${json.error || json.message || 'unknown'}`);
+                        alert(json.error || json.message || 'Training failed');
+                        return;
+                    }
+                    statusEl.textContent = (json.run && json.run.status) ? json.run.status : 'queued';
+                    log(`Train started (run=${json.run && json.run.id ? json.run.id : 'unknown'})`);
+                    await refresh();
+                } catch(e){
+                    statusEl.textContent = 'failed';
+                    setError(e.message||String(e));
+                    log(`Train exception: ${e.message||String(e)}`);
+                    alert(e.message || 'Training failed');
+                }
+            }
+
+            function showRun(run){
+                const lines = [];
+                lines.push(`Run #${run.id}`);
+                lines.push(`Status: ${run.status}`);
+                if(run.metrics_json) lines.push(`\nMetrics JSON:\n${run.metrics_json}`);
+                if(run.error_message) lines.push(`\nError:\n${run.error_message}`);
+                if(run.logs_text) lines.push(`\nLogs (tail):\n${run.logs_text.slice(-4000)}`);
+                detailsEl.textContent = lines.join('\n');
+            }
+
+            async function view(id){
+                const res = await fetch(`${API_BASE}/admin/models/training-runs`);
+                const json = await safeJson(res);
+                if(!json.success) return;
+                const run = (json.data || []).find(r => String(r.id) === String(id));
+                if(run) showRun(run);
+            }
+
+            document.getElementById('train').addEventListener('click', train);
+            document.getElementById('refresh').addEventListener('click', refresh);
+            document.getElementById('test-api').addEventListener('click', async () => {
+                try{
+                    setError('');
+                    log('Test API clicked');
+                    const res = await fetch(`${API_BASE}/admin/system-status`);
+                    const json = await safeJson(res);
+                    if(!json.success){
+                        setError(json.error || json.message || 'API test failed');
+                        log(`API test failed: ${json.error || json.message || 'unknown'}`);
+                        alert(json.error || json.message || 'API test failed');
+                        return;
+                    }
+                    log('API test OK');
+                    alert('API OK: database=' + (json.status && json.status.database ? json.status.database : 'unknown'));
+                } catch(e){
+                    setError(e.message||String(e));
+                    log(`API test exception: ${e.message||String(e)}`);
+                    alert(e.message || 'API test failed');
+                }
+            });
+            document.querySelector('#runs').addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-view]');
+                if(!btn) return;
+                view(btn.getAttribute('data-view'));
+            });
+
+            document.body.addEventListener('click', (e) => {
+                const a = e.target.closest('a[data-action="logout"]');
+                if(!a) return;
+                e.preventDefault();
+                sessionStorage.removeItem('adminToken');
+                sessionStorage.removeItem('adminUser');
+                window.location.href = '/login.html';
+            });
+
+            function fmtDate(s){ if(!s) return ''; const d=new Date(s); return isNaN(d.getTime()) ? s : d.toLocaleString(); }
+            function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+            log(`Page loaded (origin=${window.location.origin})`);
+            refresh();
+            setInterval(refresh, 8000);
+        })();
+    </script>
+</body>
+</html>

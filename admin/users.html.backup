@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Climate EWS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../templatemo-glass-admin-style.css">
+    <style>
+        :root { --climate-green: #10b981; --climate-green-dark: #059669; }
+        .logo-text-climate { background: linear-gradient(135deg, var(--climate-green), var(--climate-white)) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; background-clip: text !important; }
+        .stat-card.admin::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--climate-green), var(--climate-green-dark)); }
+    </style>
+</head>
+<body>
+    <div class="background"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><div class="logo" style="background: linear-gradient(135deg, #10b981, #059669);">🌦️</div><span class="logo-text logo-text-climate">Admin Panel</span></div>
+            <ul class="nav-menu">
+                <li class="nav-section"><span class="nav-section-title">Administration</span><ul>
+                    <li class="nav-item"><a href="dashboard.html" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a></li>
+                    <li class="nav-item"><a href="users.html" class="nav-link active"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Users</a></li>
+                </ul></li>
+                <li class="nav-section"><span class="nav-section-title">Public Site</span><ul>
+                    <li class="nav-item"><a href="../index.html" class="nav-link" target="_blank"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Public Dashboard</a></li>
+                    <li class="nav-item"><a href="index.html" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</a></li>
+                </ul></li>
+            </ul>
+            <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #059669);" id="admin-avatar">AD</div><div class="user-info"><div class="user-name" id="admin-name">Administrator</div><div class="user-role">System Admin</div></div></div></div>
+        </aside>
+        <main class="main-content">
+            <nav class="navbar"><h1 class="page-title">User Management</h1><div class="navbar-right"><button class="nav-btn" onclick="loadUsers()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button></div></nav>
+            
+            <section class="stats-grid">
+                <div class="glass-card glass-card-3d stat-card admin"><div class="stat-card-inner"><div class="stat-info"><h3>Total Users</h3><div class="stat-value" id="total-users">--</div><span class="stat-change" id="active-users">Loading...</span></div></div></div>
+                <div class="glass-card glass-card-3d stat-card admin"><div class="stat-card-inner"><div class="stat-info"><h3>SMS Subscribers</h3><div class="stat-value" id="sms-users">--</div><span class="stat-change">SMS Only</span></div></div></div>
+                <div class="glass-card glass-card-3d stat-card admin"><div class="stat-card-inner"><div class="stat-info"><h3>Email Subscribers</h3><div class="stat-value" id="email-users">--</div><span class="stat-change">Email Only</span></div></div></div>
+                <div class="glass-card glass-card-3d stat-card admin"><div class="stat-card-inner"><div class="stat-info"><h3>Both SMS & Email</h3><div class="stat-value" id="both-users">--</div><span class="stat-change">Dual Channel</span></div></div></div>
+            </section>
+
+            <section class="content-grid">
+                <div class="glass-card table-card">
+                    <div class="card-header"><div><h2 class="card-title">Subscribed Users</h2><p class="card-subtitle">All users registered for alerts</p></div><div class="card-actions"><button class="card-btn" onclick="loadUsers()">Refresh</button><button class="card-btn" onclick="exportUsers()">Export</button></div></div>
+                    <div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Preference</th><th>Status</th><th>Joined</th></tr></thead><tbody id="users-table-body"><tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading users...</td></tr></tbody></table></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <button class="mobile-menu-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <footer class="site-footer"><p>Copyright © 2026 Climate EWS Zambia | Admin Panel</p></footer>
+    <script src="../templatemo-glass-admin-script.js"></script>
+    <script>
+        const API_BASE = '../api';
+        
+        function checkAuth() {
+            const token = sessionStorage.getItem('adminToken');
+            if (!token) { window.location.href = 'index.html'; return false; }
+            const user = JSON.parse(sessionStorage.getItem('adminUser') || '{}');
+            if (user.username) {
+                document.getElementById('admin-name').textContent = user.username;
+                document.getElementById('admin-avatar').textContent = user.username.substring(0, 2).toUpperCase();
+            }
+            return true;
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/getAllUsers.php?limit=100`);
+                const result = await response.json();
+                
+                if (result.success && result.statistics) {
+                    const stats = result.statistics;
+                    document.getElementById('total-users').textContent = (stats.total_users || 0).toLocaleString();
+                    document.getElementById('sms-users').textContent = (stats.sms_only || 0).toLocaleString();
+                    document.getElementById('email-users').textContent = (stats.email_only || 0).toLocaleString();
+                    document.getElementById('both-users').textContent = (stats.both || 0).toLocaleString();
+                    document.getElementById('active-users').innerHTML = `${stats.active_users || 0} Active`;
+                    
+                    const tbody = document.getElementById('users-table-body');
+                    if (result.data && result.data.length > 0) {
+                        tbody.innerHTML = result.data.map(u => `
+                            <tr>
+                                <td>${u.name}</td>
+                                <td>${u.phone || '-'}</td>
+                                <td>${u.email || '-'}</td>
+                                <td>${u.location || '-'}</td>
+                                <td><span class="status-badge ${u.subscription_type === 'both' ? 'processing' : 'completed'}">${u.subscription_type.toUpperCase()}</span></td>
+                                <td><span class="status-badge ${u.is_active ? 'completed' : 'pending'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+                                <td>${new Date(u.created_at).toLocaleDateString('en-GB')}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No users found</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function exportUsers() {
+            alert('Export functionality would generate CSV/Excel file of all users. (To be implemented)');
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => { if(checkAuth()) loadUsers(); });
+        } else {
+            if(checkAuth()) loadUsers();
+        }
+    </script>
+</body>
+</html>

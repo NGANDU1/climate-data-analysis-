@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Climate EWS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --accent: #0ea5e9;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --light: #f8fafc;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(16, 185, 129, 0.2);
+            --gradient-primary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+            --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.3);
+            --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            animation: float 25s infinite ease-in-out;
+        }
+
+        .blob-1 {
+            width: 700px;
+            height: 700px;
+            background: linear-gradient(135deg, #10b981, #0ea5e9);
+            top: -300px;
+            left: -300px;
+        }
+
+        .blob-2 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            bottom: -200px;
+            right: -200px;
+            animation-delay: -8s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-50px, 50px) scale(0.9); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary-light);
+        }
+
+        .nav-link.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-profile:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: var(--primary);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .header-left h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modern {
+            padding: 12px 24px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-modern:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary-modern {
+            background: var(--gradient-primary);
+            border: none;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary-modern:hover {
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+            border-color: var(--primary);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 20px;
+        }
+
+        .stat-change.positive {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 15px;
+            color: #94a3b8;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.3s;
+        }
+
+        .chart-card:hover {
+            box-shadow: var(--shadow-card);
+            border-color: var(--primary);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Activity Feed */
+        .activity-section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 14px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+            transition: all 0.3s;
+        }
+
+        .activity-item:hover {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🌦️</div>
+            <div class="logo-text">Climate EWS</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-section">
+                <span class="nav-section-title">Main Menu</span>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link active">
+                            <i class="fas fa-th-large nav-icon"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="data.html" class="nav-link">
+                            <i class="fas fa-database nav-icon"></i>
+                            Climate Data
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="models.html" class="nav-link">
+                            <i class="fas fa-robot nav-icon"></i>
+                            Model Training
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="monitoring.html" class="nav-link">
+                            <i class="fas fa-heart-pulse nav-icon"></i>
+                            Monitoring
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reports.html" class="nav-link">
+                            <i class="fas fa-file-export nav-icon"></i>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html" class="nav-link">
+                            <i class="fas fa-users nav-icon"></i>
+                            Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../analytics.html" class="nav-link">
+                            <i class="fas fa-chart-line nav-icon"></i>
+                            Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link">
+                            <i class="fas fa-tachometer-alt nav-icon"></i>
+                            Public Dashboard
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-section">
+                <span class="nav-section-title">System</span>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="../settings.html" class="nav-link">
+                            <i class="fas fa-cog nav-icon"></i>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/" class="nav-link" data-action="logout">
+                            <i class="fas fa-sign-out-alt nav-icon"></i>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="user-profile">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <div class="user-name">Administrator</div>
+                <div class="user-role">System Admin</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1>Dashboard Overview</h1>
+                <p class="header-subtitle">Welcome back! Here's what's happening today.</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-modern">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+                <button class="btn-modern btn-primary-modern">
+                    <i class="fas fa-plus"></i>
+                    New Alert
+                </button>
+            </div>
+        </div>
+
+        <div id="data-error" style="display:none; margin-bottom: 20px; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); color: #fecaca;">
+            <strong style="display:block; margin-bottom: 6px;">Dashboard data failed to load</strong>
+            <span id="data-error-message"></span>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +12.5%
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-subscribers">—</div>
+                <div class="stat-label">Total Subscribers</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        -3.2%
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-alerts">—</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-cloud-rain"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8.7%
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-rainfall">—</div>
+                <div class="stat-label">Rainfall (24h)</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-thermometer-three-quarters"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +2.3°C
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-temperature">—</div>
+                <div class="stat-label">Avg. Temperature</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Alert Trends</h3>
+                    <button class="btn-modern">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <!-- Chart will be rendered here -->
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #64748b;">
+                        <i class="fas fa-chart-area" style="font-size: 48px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Risk Distribution</h3>
+                    <button class="btn-modern">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <!-- Chart will be rendered here -->
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #64748b;">
+                        <i class="fas fa-chart-pie" style="font-size: 48px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-section">
+            <div class="section-header">
+                <h3 class="chart-title">Recent Activity</h3>
+                <button class="btn-modern">
+                    View All
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="activity-list" id="recent-activity">
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Flood Alert Issued for Southern Province</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">47 new subscribers joined today</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-cloud-showers-heavy"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Heavy rainfall detected in Lusaka</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">System maintenance completed successfully</div>
+                        <div class="activity-time">3 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // API Base URL (supports running the frontend on :8080 while Flask runs on :5000)
+        const API_BASE = (() => {
+            const params = new URLSearchParams(window.location.search);
+            const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+            if (override) return override.replace(/\/$/, '');
+
+            const host = window.location.hostname;
+            const port = window.location.port;
+            if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') {
+                return 'http://localhost:5000/api';
+            }
+
+            return '/api';
+        })();
+
+        async function fetchJson(url) {
+            const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Expected JSON from ${url} but got ${contentType || 'unknown'} (${response.status}). ${text.slice(0, 120)}`);
+            }
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || data.error || `Request failed (${response.status})`);
+            }
+            return data;
+        }
+
+        function requireAuth() {
+            const token = sessionStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = '/admin/';
+                return false;
+            }
+            return true;
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        async function loadDashboardStats() {
+            const result = await fetchJson(`${API_BASE}/admin/dashboard`);
+            if (!result.success || !result.stats) return;
+
+            const stats = result.stats;
+            setText('stat-subscribers', (stats.active_users ?? 0).toLocaleString());
+            setText('stat-alerts', (stats.total_alerts ?? 0).toLocaleString());
+            setText('stat-rainfall', `${(stats.total_rainfall_24h ?? 0).toFixed(1)}mm`);
+            setText('stat-temperature', `${(stats.avg_temperature ?? 0).toFixed(1)}°C`);
+        }
+
+        async function loadRecentActivity() {
+            const container = document.getElementById('recent-activity');
+            if (!container) return;
+
+            const result = await fetchJson(`${API_BASE}/alerts?limit=5`);
+            const alerts = (result && result.data) || [];
+
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">No recent alerts</div>
+                            <div class="activity-time">All clear</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconByRisk = (risk) => {
+                if (risk === 'critical' || risk === 'high') return 'fa-exclamation-circle';
+                if (risk === 'medium') return 'fa-triangle-exclamation';
+                return 'fa-circle-info';
+            };
+
+            container.innerHTML = alerts.map(alert => {
+                const risk = alert.risk_level || 'low';
+                const region = alert.region_name || 'National';
+                const message = alert.message || 'Alert issued';
+                const created = alert.created_at ? new Date(alert.created_at) : null;
+                const timeText = created && !Number.isNaN(created.getTime()) ? created.toLocaleString() : 'Just now';
+
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas ${iconByRisk(risk)}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${region}: ${message}</div>
+                            <div class="activity-time">${timeText}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Add interactivity
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Logout -> clear session + go to homepage
+        document.querySelectorAll('[data-action="logout"]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                try {
+                    sessionStorage.removeItem('adminToken');
+                    sessionStorage.removeItem('adminUser');
+                } catch (_) {}
+                window.location.href = '../home.html';
+            });
+        });
+
+        // Load dynamic data
+        (async () => {
+            if (!requireAuth()) return;
+            try {
+                await Promise.all([loadDashboardStats(), loadRecentActivity()]);
+            } catch (err) {
+                console.error(err);
+                const box = document.getElementById('data-error');
+                const msg = document.getElementById('data-error-message');
+                if (box && msg) {
+                    msg.textContent = err && err.message ? err.message : String(err);
+                    box.style.display = 'block';
+                }
+            }
+        })();
+
+        // Animate stat cards on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.stat-card, .chart-card, .activity-item').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
