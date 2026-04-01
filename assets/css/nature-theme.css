@@ -1,0 +1,159 @@
+/* Nature/Climate Theme Overrides (shared by public + admin pages) */
+
+:root {
+  /* Brand */
+  --emerald: #16a34a;
+  --emerald-light: #4ade80;
+  --emerald-dark: #0f7a3a;
+  --forest-green: #064e3b;
+  --mint: #a7f3d0;
+  --sage: #6ee7b7;
+
+  /* Climate */
+  --climate-blue: #38bdf8;
+  --climate-green: #22c55e;
+  --climate-green-light: #4ade80;
+  --climate-green-dark: #0f7a3a;
+  --climate-orange: #fb923c;
+  --climate-red: #ef4444;
+
+  /* Legacy vars used by some pages */
+  --climate-yellow: #f59e0b;
+  --climate-yellow-dark: #b45309;
+
+  /* Warm accent (used across existing CSS as “gold”) */
+  --gold: #f59e0b;
+  --gold-light: #fde68a;
+
+  /* Glass */
+  --glass-bg: rgba(6, 24, 20, 0.72);
+  --glass-border: rgba(167, 243, 208, 0.16);
+  --glass-shadow: rgba(0, 0, 0, 0.55);
+  --glass-hover: rgba(110, 231, 183, 0.12);
+
+  /* Background */
+  --bg-dark: #04110e;
+  --bg-gradient-1: #05201a;
+  --bg-gradient-2: #063326;
+  --bg-gradient-3: #04110e;
+
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.98);
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-muted: rgba(255, 255, 255, 0.55);
+
+  /* Radii */
+  --border-radius: 22px;
+}
+
+[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(6, 95, 70, 0.16);
+  --glass-shadow: rgba(2, 6, 23, 0.08);
+  --glass-hover: rgba(16, 185, 129, 0.10);
+
+  --bg-dark: #f7fffb;
+  --bg-gradient-1: #ecfdf5;
+  --bg-gradient-2: #ffffff;
+  --bg-gradient-3: #eff6ff;
+
+  --text-primary: rgba(2, 6, 23, 0.92);
+  --text-secondary: rgba(2, 6, 23, 0.74);
+  --text-muted: rgba(2, 6, 23, 0.52);
+}
+
+/* Background: sky → forest with subtle topo pattern + hills illustration */
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+.background {
+  background:
+    radial-gradient(900px 520px at 18% 30%, rgba(56, 189, 248, 0.22) 0%, transparent 55%),
+    radial-gradient(700px 480px at 82% 62%, rgba(34, 197, 94, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 55%, var(--bg-gradient-3) 100%),
+    url("../img/hills-bg.svg");
+  background-position: 0 0, 0 0, 0 0, bottom center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: auto, auto, auto, cover;
+}
+
+.background::before {
+  background:
+    radial-gradient(1200px 700px at 50% 15%, rgba(167, 243, 208, 0.10) 0%, transparent 55%),
+    url("../img/topo.svg");
+  background-repeat: no-repeat, repeat;
+  background-size: auto, 520px 520px;
+  background-position: center top, center;
+  opacity: 0.9;
+  mix-blend-mode: overlay;
+}
+
+[data-theme="light"] .background::before {
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+}
+
+/* Orbs: keep motion, make it nature-forward */
+.orb-1 { background: rgba(34, 197, 94, 0.75); }
+.orb-2 { background: rgba(56, 189, 248, 0.65); }
+.orb-3 { background: rgba(245, 158, 11, 0.50); }
+
+/* Admin pages (inline CSS) use blobs instead of .background/.orb */
+.blob-1 { background: linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(56, 189, 248, 0.85)) !important; }
+.blob-2 { background: linear-gradient(135deg, rgba(22, 163, 74, 0.85), rgba(34, 197, 94, 0.70)) !important; }
+.blob-3 { background: linear-gradient(135deg, rgba(56, 189, 248, 0.70), rgba(245, 158, 11, 0.45)) !important; }
+
+/* Softer cards */
+.glass-card,
+.card,
+.stat-card,
+.chart-card {
+  border-radius: var(--border-radius);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="light"] .glass-card,
+[data-theme="light"] .card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .chart-card {
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.10);
+}
+
+/* Improve focus visibility without changing markup */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.85);
+  outline-offset: 3px;
+}
+
+/* Logo containers: allow dropping in the SVG mark */
+.logo img,
+.landing-logo-icon img,
+.login-logo img {
+  width: 70%;
+  height: 70%;
+  display: block;
+}
+
+.logo,
+.landing-logo-icon,
+.login-logo {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(56, 189, 248, 0.85)) !important;
+  border: 1px solid rgba(167, 243, 208, 0.22);
+  background-image: url("../img/logo-mark.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 72%;
+  color: transparent;
+}
+
+/* Buttons: slightly more “eco” */
+.btn-primary {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 1), rgba(56, 189, 248, 0.95));
+  box-shadow: 0 14px 40px rgba(16, 185, 129, 0.22);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 18px 54px rgba(56, 189, 248, 0.20);
+}

@@ -10,13 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="templatemo-glass-admin-style.css">
 
     <style>
         .controls {
             display: grid;
-            grid-template-columns: 1.2fr 1fr 1fr auto auto;
+            grid-template-columns: 1.4fr 1fr 0.8fr 0.9fr auto;
             gap: 12px;
             align-items: end;
             margin-bottom: 16px;
@@ -50,10 +49,20 @@
             text-align: left;
             font-size: 13px;
         }
-        .two-col { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; }
+        .two-col { display:grid; grid-template-columns: 1fr; gap: 18px; }
         .mono { font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: var(--text-muted); }
-        @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } .controls { grid-template-columns: 1fr 1fr; } }
+        .big-risk { display:flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .big-risk h2 { margin: 0; font-size: 18px; }
+        .big-risk .pill { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--glass-border); font-weight: 700; }
+        .big-risk .pill.low { background: rgba(2, 132, 199, 0.08); color: var(--climate-blue); }
+        .big-risk .pill.medium { background: rgba(15, 118, 110, 0.10); color: var(--emerald-dark); }
+        .big-risk .pill.high { background: rgba(180, 83, 9, 0.10); color: var(--warning); }
+        .big-risk .pill.critical { background: rgba(185, 28, 28, 0.10); color: var(--danger); }
+        .actions { margin-top: 10px; padding-left: 18px; }
+        .actions li { margin: 6px 0; }
+        @media (max-width: 1100px) { .controls { grid-template-columns: 1fr 1fr; } }
     </style>
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
 </head>
 <body>
     <div class="background"></div>
@@ -99,7 +108,7 @@
                 <li class="nav-section">
                     <span class="nav-section-title">Account</span>
                     <ul>
-                        <li class="nav-item"><a href="login.html" class="nav-link" id="logout-link">
+                        <li class="nav-item"><a href="home.html" class="nav-link" id="logout-link">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                                 <polyline points="16 17 21 12 16 7"/>
@@ -125,42 +134,49 @@
             <div class="card">
                 <div class="controls">
                     <div>
-                        <label for="search">Search region</label>
-                        <input id="search" placeholder="e.g., Lusaka">
+                        <label for="region">Location (Province)</label>
+                        <select id="region"></select>
                     </div>
                     <div>
-                        <label for="risk">Risk level</label>
-                        <select id="risk">
-                            <option value="">All</option>
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
+                        <label for="date">Date</label>
+                        <input id="date" type="date">
+                    </div>
+                    <div>
+                        <label for="days">Days</label>
+                        <select id="days">
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="7" selected>7</option>
+                            <option value="14">14</option>
                         </select>
                     </div>
                     <div>
-                        <label for="sort">Sort</label>
-                        <select id="sort">
-                            <option value="severity">Severity</option>
-                            <option value="name">Name</option>
-                            <option value="confidence">Confidence</option>
+                        <label for="method">Forecast</label>
+                        <select id="method">
+                            <option value="naive" selected>Simple (Offline)</option>
+                            <option value="arima">ARIMA (If Installed)</option>
                         </select>
                     </div>
-                    <button class="btn-mini primary" id="apply-btn">Apply</button>
-                    <div class="mono" id="status"></div>
+                    <button class="btn-mini primary" id="predict-btn">Predict</button>
                 </div>
+                <div class="mono" id="status">Works offline using saved readings.</div>
             </div>
 
             <div class="two-col">
                 <div class="card">
-                    <h2 class="card-title">Predictions Table</h2>
+                    <div class="big-risk">
+                        <h2 class="card-title">Prediction</h2>
+                        <span class="pill low" id="risk-pill">LOW</span>
+                    </div>
                     <div class="mono" id="summary"></div>
+                    <div id="message" style="margin-top: 10px; font-size: 14px;"></div>
+                    <ul class="actions" id="actions"></ul>
                     <table class="pred-table">
                         <thead>
                             <tr>
-                                <th>Region</th>
-                                <th>Risk</th>
-                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Severity</th>
+                                <th>What may happen</th>
                                 <th>Confidence</th>
                                 <th>Temp</th>
                                 <th>Hum</th>
@@ -170,18 +186,12 @@
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
-                <div class="card">
-                    <h2 class="card-title">Risk Distribution</h2>
-                    <div class="chart-container">
-                        <canvas id="riskChart"></canvas>
-                    </div>
-                    <div class="mono" id="chart-note" style="margin-top:10px;"></div>
-                </div>
             </div>
         </main>
     </div>
 
     <script src="predictions.js"></script>
+    <script src="../assets/js/bfcache-reload.js"></script>
 </body>
 </html>
 

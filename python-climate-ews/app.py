@@ -10,11 +10,16 @@ def create_app(config_name=None):
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
     
-    app = Flask(__name__, 
-                static_folder='../templatemo_607_glass_admin',
-                static_url_path='')
+    # Disable Flask's built-in static handler because it conflicts with our catch-all routes.
+    # We serve the public UI from `../templatemo_607_glass_admin` and shared assets from `../assets`.
+    app = Flask(
+        __name__,
+        static_folder="../templatemo_607_glass_admin",
+        static_url_path=None,
+    )
 
     admin_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'admin'))
+    assets_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -81,6 +86,21 @@ def create_app(config_name=None):
         if os.path.exists(os.path.join(admin_folder, path)):
             return send_from_directory(admin_folder, path)
         return send_from_directory(admin_folder, 'index.html')
+
+    # Serve shared assets (themes, JS helpers, images).
+    @app.route('/assets/<path:path>')
+    def serve_assets(path):
+        if os.path.exists(os.path.join(assets_folder, path)):
+            return send_from_directory(assets_folder, path)
+        return jsonify({'error': 'Not found'}), 404
+
+    # Compatibility: some links may include the folder name in the URL.
+    @app.route('/templatemo_607_glass_admin/')
+    @app.route('/templatemo_607_glass_admin/<path:path>')
+    def serve_public_compat(path='home.html'):
+        if os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, 'home.html')
     
     @app.route('/<path:path>')
     def serve_static(path):

@@ -34,6 +34,7 @@
         .pill{display:inline-flex;padding:4px 10px;border-radius:999px;background:rgba(16,185,129,0.12);color:#34d399;font-weight:900;font-size:12px;}
         @media(max-width:1000px){.main{margin-left:0}.sidebar{position:static;width:auto}.grid{grid-template-columns:1fr}}
     </style>
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
 </head>
 <body>
     <aside class="sidebar">
@@ -58,7 +59,7 @@
                 <span class="nav-section-title">System</span>
                 <ul class="nav-list">
                     <li><a class="nav-link" href="../settings.html"><i class="fas fa-cog"></i>Settings</a></li>
-                    <li><a class="nav-link" href="/" data-action="logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                    <li><a class="nav-link" href="../home.html" data-action="logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -193,5 +194,6 @@
             setInterval(refresh, 15000);
         })();
     </script>
+<script src="../assets/js/bfcache-reload.js"></script>
 </body>
 </html>

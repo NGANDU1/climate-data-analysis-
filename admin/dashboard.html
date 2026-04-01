@@ -504,6 +504,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
 </head>
 <body>
     <!-- Animated Background -->
@@ -565,12 +566,6 @@
                             Analytics
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="../index.html" class="nav-link">
-                            <i class="fas fa-tachometer-alt nav-icon"></i>
-                            Public Dashboard
-                        </a>
-                    </li>
                 </ul>
             </li>
 
@@ -584,7 +579,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/" class="nav-link" data-action="logout">
+                        <a href="../home.html" class="nav-link" data-action="logout">
                             <i class="fas fa-sign-out-alt nav-icon"></i>
                             Logout
                         </a>
@@ -615,6 +610,10 @@
                     <i class="fas fa-download"></i>
                     Export
                 </button>
+                <a class="btn-modern" href="../home.html" data-action="logout" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
                 <button class="btn-modern btn-primary-modern">
                     <i class="fas fa-plus"></i>
                     New Alert
@@ -970,17 +969,17 @@
             });
         });
 
-        // Logout -> clear session + go to homepage
-        document.querySelectorAll('[data-action="logout"]').forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                try {
-                    sessionStorage.removeItem('adminToken');
-                    sessionStorage.removeItem('adminUser');
-                } catch (_) {}
-                window.location.href = '../home.html';
+            // Logout -> clear session + go to login
+            document.querySelectorAll('[data-action="logout"]').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    try {
+                        sessionStorage.removeItem('adminToken');
+                        sessionStorage.removeItem('adminUser');
+                    } catch (_) {}
+                    window.location.href = '../home.html';
+                });
             });
-        });
 
         // Load dynamic data
         (async () => {
@@ -1015,5 +1014,6 @@
             observer.observe(card);
         });
     </script>
+<script src="../assets/js/bfcache-reload.js"></script>
 </body>
 </html>

@@ -108,6 +108,7 @@
         .btn-action { width: 36px; height: 36px; background: rgba(30, 41, 59, 0.5); border: 1px solid var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: #94a3b8; }
         .btn-action:hover { background: rgba(30, 41, 59, 0.8); border-color: var(--primary); color: var(--primary); transform: scale(1.1); }
     </style>
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
 </head>
 <body>
     <!-- Sidebar -->
@@ -125,11 +126,11 @@
                 <li class="nav-item"><a href="reports.html" class="nav-link"><i class="fas fa-file-export nav-icon"></i>Reports</a></li>
                 <li class="nav-item"><a href="users.html" class="nav-link active"><i class="fas fa-users nav-icon"></i>Users</a></li>
                 <li class="nav-item"><a href="../analytics.html" class="nav-link"><i class="fas fa-chart-line nav-icon"></i>Analytics</a></li>
-                <li class="nav-item"><a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt nav-icon"></i>Public Dashboard</a></li></ul>
+                </ul>
             </li>
             <li class="nav-section"><span class="nav-section-title">System</span>
                 <ul><li class="nav-item"><a href="../settings.html" class="nav-link"><i class="fas fa-cog nav-icon"></i>Settings</a></li>
-                <li class="nav-item"><a href="/" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li></ul>
+                <li class="nav-item"><a href="../home.html" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li></ul>
             </li>
         </ul>
         <div class="user-profile">
@@ -481,7 +482,7 @@
                 searchInput.addEventListener('input', applySearch);
             }
 
-            // Logout -> clear session + go to homepage
+            // Logout -> clear session + go to login
             document.querySelectorAll('[data-action="logout"]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -501,5 +502,6 @@
             });
         })();
     </script>
+<script src="../assets/js/bfcache-reload.js"></script>
 </body>
 </html>

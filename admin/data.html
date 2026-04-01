@@ -61,6 +61,7 @@
         .danger-text { color: #fca5a5; font-weight: 800; }
         @media (max-width: 1000px) { .split { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } .main { margin-left: 0; } .sidebar { position: static; width: auto; } }
     </style>
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
 </head>
 <body>
     <aside class="sidebar">
@@ -80,14 +81,13 @@
                     <li class="nav-item"><a href="reports.html" class="nav-link"><i class="fas fa-file-export nav-icon"></i>Reports</a></li>
                     <li class="nav-item"><a href="users.html" class="nav-link"><i class="fas fa-users nav-icon"></i>Users</a></li>
                     <li class="nav-item"><a href="../analytics.html" class="nav-link"><i class="fas fa-chart-line nav-icon"></i>Analytics</a></li>
-                    <li class="nav-item"><a href="../index.html" class="nav-link"><i class="fas fa-tachometer-alt nav-icon"></i>Public Dashboard</a></li>
                 </ul>
             </li>
             <li class="nav-section">
                 <span class="nav-section-title">System</span>
                 <ul class="nav-list">
                     <li class="nav-item"><a href="../settings.html" class="nav-link"><i class="fas fa-cog nav-icon"></i>Settings</a></li>
-                    <li class="nav-item"><a href="/" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li>
+                    <li class="nav-item"><a href="../home.html" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -562,5 +562,6 @@
             refreshSyncRuns();
         })();
     </script>
+<script src="../assets/js/bfcache-reload.js"></script>
 </body>
 </html>

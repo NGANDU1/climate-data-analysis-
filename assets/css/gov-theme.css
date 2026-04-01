@@ -1,0 +1,359 @@
+/* Government/Report Theme (light default, optional dark)
+   Loaded AFTER templatemo/admin styles to override appearance site-wide. */
+
+:root,
+html[data-theme="light"] {
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Core palette (light) */
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #d8e1ea;
+  --text: #0b1f33;
+  --muted: #51606d;
+
+  /* Brand (blue + teal) */
+  --primary: #075985; /* blue */
+  --primary-2: #0f766e; /* teal */
+  --primary-3: #166534; /* green */
+
+  /* Status */
+  --success: var(--primary-2);
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --info: #075985;
+
+  /* Map existing template vars -> gov palette */
+  --emerald: var(--primary-2);
+  --emerald-light: #14b8a6;
+  --emerald-dark: #0f766e;
+  --forest-green: #064e3b;
+  --mint: #99f6e4;
+  --sage: #5eead4;
+
+  --climate-blue: #0284c7;
+  --climate-green: var(--primary-2);
+  --climate-green-light: #14b8a6;
+  --climate-green-dark: #115e59;
+  --climate-orange: #c2410c;
+  --climate-red: #b91c1c;
+  --climate-yellow: #b45309;
+  --climate-yellow-dark: #7c2d12;
+
+  /* Glass vars reused across the templates */
+  --glass-bg: var(--surface);
+  --glass-border: var(--border);
+  --glass-shadow: rgba(11, 31, 51, 0.08);
+  --glass-hover: rgba(2, 132, 199, 0.06);
+
+  --bg-dark: var(--bg);
+  --bg-gradient-1: var(--bg);
+  --bg-gradient-2: var(--bg);
+  --bg-gradient-3: var(--bg);
+
+  --text-primary: var(--text);
+  --text-secondary: rgba(11, 31, 51, 0.72);
+  --text-muted: rgba(11, 31, 51, 0.56);
+}
+
+html[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #0f1b2d;
+  --surface-2: #111f34;
+  --border: rgba(148, 163, 184, 0.22);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.64);
+
+  --glass-bg: rgba(15, 27, 45, 0.92);
+  --glass-border: rgba(148, 163, 184, 0.18);
+  --glass-shadow: rgba(0, 0, 0, 0.35);
+  --glass-hover: rgba(56, 189, 248, 0.10);
+
+  --bg-dark: var(--bg);
+  --bg-gradient-1: var(--bg);
+  --bg-gradient-2: var(--bg);
+  --bg-gradient-3: var(--bg);
+
+  --text-primary: var(--text);
+  --text-secondary: rgba(255, 255, 255, 0.74);
+  --text-muted: rgba(255, 255, 255, 0.56);
+}
+
+/* Reduce motion + remove glassy/animated decoration */
+.background,
+.orb,
+.bg-animation,
+.bg-blob {
+  display: none !important;
+}
+
+* {
+  text-shadow: none !important;
+}
+
+body {
+  font-family: var(--font-sans) !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-weight: 650 !important;
+}
+
+/* Many template pages hard-code white/low-opacity text for dark themes.
+   Force readable black text in light mode across the UI. */
+body,
+body * {
+  color: var(--text) !important;
+  /* Cancel gradient/transparent text styles from legacy templates */
+  -webkit-text-fill-color: currentColor !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] body * {
+  color: var(--text) !important;
+}
+
+html[data-theme="light"] .mono,
+html[data-theme="light"] .text-muted,
+html[data-theme="light"] .muted {
+  color: var(--muted) !important;
+}
+
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .btn-filled,
+html[data-theme="light"] .btn-mini.primary,
+html[data-theme="light"] .btn-primary-modern,
+html[data-theme="light"] .btn-modern.btn-primary-modern {
+  color: #fff !important;
+}
+
+html[data-theme="light"] .risk-badge.low { color: var(--info) !important; }
+html[data-theme="light"] .risk-badge.medium { color: var(--primary-2) !important; }
+html[data-theme="light"] .risk-badge.high { color: var(--warning) !important; }
+html[data-theme="light"] .risk-badge.critical { color: var(--danger) !important; }
+
+/* Some pages use gradient text with transparent fill. Force solid readable text. */
+.page-title,
+.page-header h1,
+.header-left h1,
+.stat-value,
+.hero-content h1,
+.section-title,
+.logo-text,
+.logo-text-climate,
+.footer-brand-text {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  opacity: 1 !important;
+}
+
+.mono,
+code,
+pre,
+.code,
+.space-mono {
+  font-family: var(--font-mono) !important;
+  font-weight: 550 !important;
+}
+
+/* Layout surfaces */
+.dashboard,
+.main-content,
+.content-area,
+.page-content,
+.container,
+.wrapper {
+  background: transparent !important;
+}
+
+/* Sidebar + navbar: solid, bordered */
+.sidebar {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: 0 8px 24px rgba(11, 31, 51, 0.06);
+}
+
+.navbar,
+.landing-nav {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Home footer */
+.landing-footer {
+  background: var(--surface) !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border) !important;
+}
+
+/* Cards: flat report style */
+.glass-card,
+.card,
+.stat-card,
+.chart-card,
+.table-card,
+.login-card,
+.feature-card,
+.step-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 10px 26px rgba(11, 31, 51, 0.06) !important;
+}
+
+html[data-theme="dark"] .glass-card,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .chart-card,
+html[data-theme="dark"] .table-card,
+html[data-theme="dark"] .login-card,
+html[data-theme="dark"] .feature-card,
+html[data-theme="dark"] .step-card {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Buttons: neutral + accessible */
+.btn,
+.btn-nav,
+.btn-large,
+.btn-mini,
+button {
+  border-radius: 10px !important;
+}
+
+.btn-primary,
+.btn-filled,
+.btn-mini.primary {
+  background: var(--primary) !important;
+  border: 1px solid rgba(11, 75, 140, 0.20) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+.btn-filled:hover,
+.btn-mini.primary:hover {
+  filter: brightness(0.98);
+  transform: none !important;
+}
+
+.btn-secondary,
+.btn-outline,
+.btn-mini:not(.primary) {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.btn-secondary:hover,
+.btn-outline:hover,
+.btn-mini:not(.primary):hover {
+  background: var(--surface-2) !important;
+  transform: none !important;
+}
+
+/* Links */
+a {
+  color: var(--primary) !important;
+}
+
+a:hover {
+  color: var(--primary-2) !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Clean badges */
+.risk-badge,
+.badge,
+.pill {
+  border: 1px solid var(--border) !important;
+}
+
+/* Logo blocks: use a neutral mark instead of emojis */
+.logo,
+.landing-logo-icon,
+.login-logo {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  background-image: url("../img/gov-mark.svg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 70% !important;
+  /* Keep text visible (some pages use a letter/emoji as the mark). */
+  color: var(--text) !important;
+}
+
+/* Home hero graphic (replaces hidden orb decoration) */
+.hero-graphic {
+  width: min(460px, 100%);
+  height: 360px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(11, 75, 140, 0.08), rgba(15, 118, 110, 0.08)),
+    url("../img/gov-mark.svg");
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 0, center;
+  background-size: cover, 46%;
+  box-shadow: 0 10px 26px rgba(11, 31, 51, 0.06);
+}
+
+html[data-theme="dark"] .hero-graphic {
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.10), rgba(34, 197, 94, 0.08)),
+    url("../img/gov-mark.svg");
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+/* Admin: flatten the old “glow” */
+[style*="--shadow-glow"],
+.shadow-glow {
+  box-shadow: none !important;
+}
+
+/* Accessibility: clear focus rings */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(2, 132, 199, 0.65);
+  outline-offset: 3px;
+}
+
+@media print {
+  .sidebar,
+  .navbar,
+  .landing-nav,
+  .theme-toggle-float,
+  .nav-links,
+  .nav-buttons {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .glass-card,
+  .card,
+  .chart-card,
+  .table-card {
+    box-shadow: none !important;
+  }
+}

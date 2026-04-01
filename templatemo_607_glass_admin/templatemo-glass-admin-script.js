@@ -32,8 +32,8 @@
             }
         }
         
-        // Check for saved theme preference or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        // Check for saved theme preference or default to light (report style)
+        const savedTheme = localStorage.getItem('theme') || 'light';
         setTheme(savedTheme);
         
         themeToggle.addEventListener('click', () => {
@@ -46,6 +46,8 @@
     // 3D Tilt Effect
     // ============================================
     function initTiltEffect() {
+        // Disabled for government/report style (avoid “playful” motion).
+        return;
         document.querySelectorAll('.glass-card-3d').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
