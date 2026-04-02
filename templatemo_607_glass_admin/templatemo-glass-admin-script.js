@@ -218,6 +218,7 @@
             link.addEventListener('click', (e) => {
                 // Skip external links
                 if (link.hostname !== window.location.hostname) return;
+                if (link.matches('[data-action="logout"]')) return;
                 
                 e.preventDefault();
                 const href = link.getAttribute('href');
@@ -234,6 +235,194 @@
         // Fade in on page load
         window.addEventListener('load', () => {
             document.body.style.opacity = '1';
+        });
+    }
+
+    // ============================================
+    // Logout (viewer + admin)
+    // ============================================
+    function initLogout() {
+        const logoutLinks = document.querySelectorAll('[data-action="logout"], #logout-link');
+        if (logoutLinks.length === 0) return;
+
+        logoutLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                try { window.localStorage.removeItem('userSession'); } catch (_) {}
+                try { window.sessionStorage.removeItem('adminToken'); } catch (_) {}
+                try { window.sessionStorage.removeItem('adminUser'); } catch (_) {}
+                window.location.href = '/';
+            });
+        });
+    }
+
+    // ============================================
+    // Settings Persistence (localStorage)
+    // ============================================
+    function initSettingsPersistence() {
+        const fields = Array.from(document.querySelectorAll('[data-setting-key]'));
+        if (fields.length === 0) return;
+
+        const storageKey = 'ews_settings_v1';
+
+        const API_BASE = (() => {
+            const params = new URLSearchParams(window.location.search);
+            const override = params.get('apiBase');
+            if (override) return override.replace(/\/$/, '');
+
+            const host = window.location.hostname;
+            const port = window.location.port;
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            const isFlaskPort = port === '5000';
+            if (isLocalhost && !isFlaskPort) {
+                return 'http://localhost:5000/api';
+            }
+
+            return '/api';
+        })();
+
+        function readForm() {
+            const data = {};
+            fields.forEach(el => {
+                const key = el.getAttribute('data-setting-key');
+                if (!key) return;
+
+                if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+                    data[key] = !!el.checked;
+                } else {
+                    data[key] = el.value;
+                }
+            });
+            return data;
+        }
+
+        function applyForm(data) {
+            fields.forEach(el => {
+                const key = el.getAttribute('data-setting-key');
+                if (!key) return;
+                if (!(key in data)) return;
+
+                if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+                    el.checked = !!data[key];
+                } else {
+                    el.value = data[key];
+                }
+            });
+        }
+
+        function getAdminContext() {
+            try {
+                const token = window.sessionStorage.getItem('adminToken');
+                const admin = JSON.parse(window.sessionStorage.getItem('adminUser') || 'null');
+                if (token && admin && admin.id) return { token, admin };
+            } catch (_) {}
+            return null;
+        }
+
+        function getUserContext() {
+            try {
+                const session = JSON.parse(window.localStorage.getItem('userSession') || 'null');
+                if (session && session.user && session.user.id) return session;
+            } catch (_) {}
+            return null;
+        }
+
+        async function loadFromServer() {
+            const adminCtx = getAdminContext();
+            const userCtx = getUserContext();
+
+            try {
+                if (adminCtx) {
+                    const res = await fetch(`${API_BASE}/admin/settings?admin_id=${encodeURIComponent(adminCtx.admin.id)}`, {
+                        headers: { Authorization: `Bearer ${adminCtx.token}` }
+                    });
+                    const json = await res.json().catch(() => ({}));
+                    if (res.ok && json && json.success) return json.settings || {};
+                }
+                if (userCtx) {
+                    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userCtx.user.id)}/settings`, {
+                        headers: userCtx.token ? { Authorization: `Bearer ${userCtx.token}` } : {}
+                    });
+                    const json = await res.json().catch(() => ({}));
+                    if (res.ok && json && json.success) return json.settings || {};
+                }
+            } catch (_) {}
+
+            return null;
+        }
+
+        async function saveToServer(settings) {
+            const adminCtx = getAdminContext();
+            const userCtx = getUserContext();
+
+            if (adminCtx) {
+                const res = await fetch(`${API_BASE}/admin/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminCtx.token}` },
+                    body: JSON.stringify({ admin_id: adminCtx.admin.id, settings })
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json.success) throw new Error(json.message || json.error || 'Save failed');
+                return;
+            }
+
+            if (userCtx) {
+                const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userCtx.user.id)}/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...(userCtx.token ? { Authorization: `Bearer ${userCtx.token}` } : {}) },
+                    body: JSON.stringify({ settings })
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json.success) throw new Error(json.message || json.error || 'Save failed');
+                return;
+            }
+
+            throw new Error('Not signed in');
+        }
+
+        // Load: prefer server, fall back to local storage.
+        (async () => {
+            const fromServer = await loadFromServer();
+            if (fromServer && typeof fromServer === 'object') {
+                applyForm(fromServer);
+                try { window.localStorage.setItem(storageKey, JSON.stringify(fromServer)); } catch (_) {}
+                return;
+            }
+
+            let saved = {};
+            try {
+                saved = JSON.parse(window.localStorage.getItem(storageKey) || '{}') || {};
+            } catch (_) {
+                saved = {};
+            }
+            if (saved && typeof saved === 'object') {
+                applyForm(saved);
+            }
+        })();
+
+        const initialSnapshot = readForm();
+
+        document.querySelectorAll('[data-action="settings-save"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const next = readForm();
+                (async () => {
+                    try {
+                        await saveToServer(next);
+                        try { window.localStorage.setItem(storageKey, JSON.stringify(next)); } catch (_) {}
+                        alert('Settings saved');
+                    } catch (err) {
+                        alert(err && err.message ? err.message : 'Save failed');
+                    }
+                })();
+            });
+        });
+
+        document.querySelectorAll('[data-action="settings-cancel"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                applyForm(initialSnapshot);
+            });
         });
     }
 
@@ -318,6 +507,8 @@
         initPasswordToggle();
         initPageTransitions();
         initSettingsTabs();
+        initLogout();
+        initSettingsPersistence();
     }
 
     // Run on DOM ready

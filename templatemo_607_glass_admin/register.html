@@ -170,7 +170,10 @@
                     }
 
                     window.localStorage.setItem('userSession', JSON.stringify({
+                        role: 'user',
                         user: result.user,
+                        token: result.token,
+                        expiresAt: result.expires_at,
                         loginAt: new Date().toISOString()
                     }));
 

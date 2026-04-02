@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, redirect
 from flask_cors import CORS
 from config import config
 from models import db, init_db
@@ -72,6 +72,11 @@ def create_app(config_name=None):
     @app.route('/')
     def serve_home():
         return send_from_directory(app.static_folder, 'home.html')
+
+    # Block public access to legacy template pages that should not be user-accessible.
+    @app.route('/users.html')
+    def block_public_users_page():
+        return redirect('/', code=302)
 
     # Public dashboard (old default landing)
     @app.route('/dashboard')

@@ -579,7 +579,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="../home.html" class="nav-link" data-action="logout">
+                        <a href="/" class="nav-link" data-action="logout">
                             <i class="fas fa-sign-out-alt nav-icon"></i>
                             Logout
                         </a>
@@ -610,7 +610,7 @@
                     <i class="fas fa-download"></i>
                     Export
                 </button>
-                <a class="btn-modern" href="../home.html" data-action="logout" title="Logout">
+            <a class="btn-modern" href="/" data-action="logout" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
                 </a>
@@ -769,12 +769,14 @@
         // API Base URL (supports running the frontend on :8080 while Flask runs on :5000)
         const API_BASE = (() => {
             const params = new URLSearchParams(window.location.search);
-            const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+            const override = params.get('apiBase');
             if (override) return override.replace(/\/$/, '');
 
             const host = window.location.hostname;
             const port = window.location.port;
-            if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') {
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            const isFlaskPort = port === '5000';
+            if (isLocalhost && !isFlaskPort) {
                 return 'http://localhost:5000/api';
             }
 
@@ -977,7 +979,7 @@
                         sessionStorage.removeItem('adminToken');
                         sessionStorage.removeItem('adminUser');
                     } catch (_) {}
-                    window.location.href = '../home.html';
+                    window.location.href = '/';
                 });
             });
 

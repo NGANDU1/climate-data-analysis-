@@ -1,11 +1,14 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from models import db
 from models.admin import Admin
+from models.admin_setting import AdminSetting
+from services.auth_context import get_auth_payload
 from models.alert import Alert
 from models.user import User
 from models.weather_data import WeatherData
 from models.region import Region
 from datetime import datetime, timedelta
+from services.auth_tokens import issue_token
 
 api = Blueprint('admin', __name__)
 
@@ -51,11 +54,14 @@ def login():
             'login_time': datetime.utcnow()
         }
         
+        token = issue_token(secret_key=str(current_app.config.get("SECRET_KEY") or ""), payload={"role": "admin", "sub": admin.id})
         return jsonify({
             'success': True,
             'message': 'Login successful',
             'admin': admin.to_dict(),
-            'session_id': session_id
+            'session_id': session_id,
+            'token': token["token"],
+            'expires_at': token["expires_at"],
         })
         
     except Exception as e:
@@ -222,6 +228,63 @@ def get_weather_trends():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@api.route('/settings', methods=['GET', 'PUT'])
+def admin_settings():
+    """
+    Persist per-admin settings (stored in DB).
+
+    Note: This project currently uses client-stored sessions (no bearer token).
+    For production, protect this endpoint with proper authentication.
+    """
+    auth = get_auth_payload(request)
+    if not auth:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    if auth.get("role") != "admin":
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
+    if request.method == 'GET':
+        admin_id = request.args.get('admin_id', type=int)
+    else:
+        admin_id = (request.get_json(silent=True) or {}).get('admin_id')
+        try:
+            admin_id = int(admin_id) if admin_id is not None else None
+        except Exception:
+            admin_id = None
+
+    if not admin_id:
+        return jsonify({"success": False, "message": "admin_id is required"}), 400
+    if str(auth.get("sub")) != str(admin_id):
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
+    admin = Admin.query.get(admin_id)
+    if not admin:
+        return jsonify({"success": False, "message": "Admin not found"}), 404
+
+    setting = AdminSetting.query.filter_by(admin_id=admin_id).first()
+
+    if request.method == 'GET':
+        if not setting:
+            return jsonify({"success": True, "admin_id": admin_id, "settings": {}, "updated_at": None})
+        return jsonify({"success": True, **setting.to_dict()})
+
+    data = request.get_json(silent=True) or {}
+    settings = data.get("settings")
+    if settings is None or not isinstance(settings, dict):
+        return jsonify({"success": False, "message": "settings must be an object"}), 400
+
+    try:
+        if not setting:
+            setting = AdminSetting(admin_id=admin_id)
+            db.session.add(setting)
+
+        setting.set_settings(settings)
+        db.session.commit()
+        return jsonify({"success": True, **setting.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @api.route('/alert-trends', methods=['GET'])

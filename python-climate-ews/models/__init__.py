@@ -41,7 +41,9 @@ def init_db(app):
         from . import model_training_run as _model_training_run
         from . import region as _region
         from . import user as _user
+        from . import user_setting as _user_setting
         from . import weather_data as _weather_data
+        from . import admin_setting as _admin_setting
         db.create_all()
 
         _ensure_sqlite_columns(

@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from datetime import datetime, timedelta
 import secrets
 
 from models import db
 from models.user import User
 from models.admin import Admin
+from services.auth_tokens import issue_token
 
 
 api = Blueprint("auth", __name__)
@@ -63,6 +64,7 @@ def register():
             "success": True,
             "message": "Account created" if created else "Account updated",
             "user": user.to_dict(),
+            **issue_token(secret_key=str(current_app.config.get("SECRET_KEY") or ""), payload={"role": "user", "sub": user.id}),
         }
     )
 
@@ -83,6 +85,7 @@ def login():
         if not admin.check_password(password):
             return _json_error("Invalid username or password", 401, "BAD_PASSWORD")
 
+        token = issue_token(secret_key=str(current_app.config.get("SECRET_KEY") or ""), payload={"role": "admin", "sub": admin.id})
         session_id = secrets.token_urlsafe(24)
         return jsonify(
             {
@@ -91,6 +94,8 @@ def login():
                 "role": "admin",
                 "admin": admin.to_dict(),
                 "session_id": session_id,
+                "token": token["token"],
+                "expires_at": token["expires_at"],
             }
         )
 
@@ -106,12 +111,15 @@ def login():
         return _json_error("Invalid email or password", 401, "BAD_PASSWORD")
 
     # Simple stateless response; frontend stores session locally.
+    token = issue_token(secret_key=str(current_app.config.get("SECRET_KEY") or ""), payload={"role": "user", "sub": user.id})
     return jsonify(
         {
             "success": True,
             "message": "Login successful",
             "role": "user",
             "user": user.to_dict(),
+            "token": token["token"],
+            "expires_at": token["expires_at"],
         }
     )
 

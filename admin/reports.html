@@ -62,7 +62,7 @@
                 <span class="nav-section-title">System</span>
                 <ul class="nav-list">
                     <li><a class="nav-link" href="../settings.html"><i class="fas fa-cog"></i>Settings</a></li>
-                    <li><a class="nav-link" href="../home.html" data-action="logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+        <li><a class="nav-link" href="/" data-action="logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -119,11 +119,13 @@
             'use strict';
             const API_BASE = (() => {
                 const params = new URLSearchParams(window.location.search);
-                const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+            const override = params.get('apiBase');
                 if (override) return override.replace(/\/$/, '');
-                const host = window.location.hostname;
-                const port = window.location.port;
-                if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') return 'http://localhost:5000/api';
+            const host = window.location.hostname;
+            const port = window.location.port;
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            const isFlaskPort = port === '5000';
+            if (isLocalhost && !isFlaskPort) return 'http://localhost:5000/api';
                 return '/api';
             })();
             document.getElementById('api-base').textContent = API_BASE;
@@ -174,7 +176,7 @@
                 e.preventDefault();
                 sessionStorage.removeItem('adminToken');
                 sessionStorage.removeItem('adminUser');
-                window.location.href = '/login.html';
+                window.location.href = '/';
             });
         })();
     </script>

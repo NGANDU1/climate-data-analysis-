@@ -87,9 +87,13 @@ python-climate-ews/
    ```
 
 4. **Seed the database**
-   ```bash
-   python seed_database.py
-   ```
+    ```bash
+    # Real data mode (no demo users)
+    python seed_database.py
+
+    # Optional demo data (sample users/alerts)
+    # python seed_database.py --with-samples
+    ```
 
 5. **Run the application**
    ```bash

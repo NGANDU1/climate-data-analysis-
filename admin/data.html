@@ -87,7 +87,7 @@
                 <span class="nav-section-title">System</span>
                 <ul class="nav-list">
                     <li class="nav-item"><a href="../settings.html" class="nav-link"><i class="fas fa-cog nav-icon"></i>Settings</a></li>
-                    <li class="nav-item"><a href="../home.html" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li>
+<li class="nav-item"><a href="/" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -259,11 +259,13 @@
 
             const API_BASE = (() => {
                 const params = new URLSearchParams(window.location.search);
-                const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+            const override = params.get('apiBase');
                 if (override) return override.replace(/\/$/, '');
-                const host = window.location.hostname;
-                const port = window.location.port;
-                if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') return 'http://localhost:5000/api';
+            const host = window.location.hostname;
+            const port = window.location.port;
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            const isFlaskPort = port === '5000';
+            if (isLocalhost && !isFlaskPort) return 'http://localhost:5000/api';
                 return '/api';
             })();
             document.getElementById('api-base').textContent = API_BASE;
@@ -433,7 +435,7 @@
                 e.preventDefault();
                 sessionStorage.removeItem('adminToken');
                 sessionStorage.removeItem('adminUser');
-                window.location.href = '/login.html';
+                window.location.href = '/';
             });
 
             function fmt(v) { return (v === null || v === undefined) ? '' : Number(v).toFixed(1); }

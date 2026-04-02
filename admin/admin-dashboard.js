@@ -8,12 +8,14 @@
 
     const API_BASE = (() => {
         const params = new URLSearchParams(window.location.search);
-        const override = params.get('apiBase') || window.localStorage.getItem('apiBase');
+        const override = params.get('apiBase');
         if (override) return override.replace(/\/$/, '');
 
         const host = window.location.hostname;
         const port = window.location.port;
-        if ((host === 'localhost' || host === '127.0.0.1') && port && port !== '5000') {
+        const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+        const isFlaskPort = port === '5000';
+        if (isLocalhost && !isFlaskPort) {
             return 'http://localhost:5000/api';
         }
 

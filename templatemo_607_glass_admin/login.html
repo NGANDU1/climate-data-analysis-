@@ -154,21 +154,23 @@
                          throw new Error(result.message || 'Login failed');
                      }
 
-                     if (result.role === 'admin') {
-                         try {
-                             sessionStorage.setItem('adminToken', result.session_id || 'admin');
-                             sessionStorage.setItem('adminUser', JSON.stringify(result.admin || { username: identifier }));
-                             window.localStorage.removeItem('userSession');
-                         } catch (_) {}
-                         window.location.href = '/admin/dashboard.html';
-                         return;
-                     }
+                      if (result.role === 'admin') {
+                          try {
+                              sessionStorage.setItem('adminToken', result.token || result.session_id || 'admin');
+                              sessionStorage.setItem('adminUser', JSON.stringify(result.admin || { username: identifier }));
+                              window.localStorage.removeItem('userSession');
+                          } catch (_) {}
+                          window.location.href = '/admin/dashboard.html';
+                          return;
+                      }
 
-                     window.localStorage.setItem('userSession', JSON.stringify({
-                         role: 'user',
-                         user: result.user,
-                         loginAt: new Date().toISOString()
-                     }));
+                      window.localStorage.setItem('userSession', JSON.stringify({
+                          role: 'user',
+                          user: result.user,
+                          token: result.token,
+                          expiresAt: result.expires_at,
+                          loginAt: new Date().toISOString()
+                      }));
 
                      try {
                          sessionStorage.removeItem('adminToken');

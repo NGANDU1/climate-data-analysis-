@@ -31,7 +31,7 @@ I've successfully replaced your old admin pages with the stunning new modern des
 ✅ **Redirects to:** `dashboard.html` (after successful login)  
 ✅ **Links to:**
 - Subscribe Now → `../register.html`
-- Home Page → `../home.html`
+- Home Page → `/`
 
 ---
 

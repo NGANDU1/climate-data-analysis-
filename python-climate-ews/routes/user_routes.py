@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from models import db
 from models.user import User
+from models.user_setting import UserSetting
+from services.auth_context import get_auth_payload
 from services.notification_service import NotificationService
 from datetime import datetime, timedelta
 
@@ -190,3 +192,52 @@ def get_user_stats():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@api.route('/<int:user_id>/settings', methods=['GET', 'PUT'])
+def user_settings(user_id: int):
+    """
+    Persist per-user settings (stored in DB).
+
+    Note: This project currently uses client-stored sessions (no bearer token).
+    For production, protect this endpoint with proper authentication.
+    """
+    auth = get_auth_payload(request)
+    if not auth:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    role = auth.get("role")
+    sub = auth.get("sub")
+    if role == "admin":
+        pass
+    elif role == "user" and str(sub) == str(user_id):
+        pass
+    else:
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+
+    setting = UserSetting.query.filter_by(user_id=user_id).first()
+    if request.method == 'GET':
+        if not setting:
+            return jsonify({"success": True, "user_id": user_id, "settings": {}, "updated_at": None})
+        return jsonify({"success": True, **setting.to_dict()})
+
+    data = request.get_json(silent=True) or {}
+    settings = data.get("settings")
+    if settings is None or not isinstance(settings, dict):
+        return jsonify({"success": False, "message": "settings must be an object"}), 400
+
+    try:
+        if not setting:
+            setting = UserSetting(user_id=user_id)
+            db.session.add(setting)
+
+        setting.set_settings(settings)
+        db.session.commit()
+        return jsonify({"success": True, **setting.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500

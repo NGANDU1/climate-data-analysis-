@@ -38,8 +38,11 @@ Open Command Prompt in `python-climate-ews` folder:
 # Install once
 pip install -r requirements.txt
 
-# Initialize database
+# Initialize database (real data mode - no demo users)
 python seed_database.py
+
+# (Optional) Initialize with demo users/alerts
+# python seed_database.py --with-samples
 
 # Train models (takes 2-3 min)
 python train_models.py

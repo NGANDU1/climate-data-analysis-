@@ -229,8 +229,14 @@ class DataSeeder:
         return sample_alerts
     
     @staticmethod
-    def seed_all():
-        """Run complete database seeding"""
+    def seed_all(include_samples: bool = False):
+        """Run complete database seeding
+
+        Args:
+            include_samples: When True, seeds sample users/alerts for demos.
+                Keep False for real deployments so the admin "Users" page shows
+                only actual subscribers.
+        """
         print("Seeding regions...")
         regions = DataSeeder.seed_regions()
         print(f"Created/found {len(regions)} regions")
@@ -242,14 +248,17 @@ class DataSeeder:
         print("Seeding admin user...")
         admin, created = DataSeeder.seed_admin_user()
         print(f"Admin user: {admin.username} ({'created' if created else 'already exists'})")
-        
-        print("Seeding sample users...")
-        user_count = DataSeeder.seed_sample_users(5)
-        print(f"Created {user_count} sample users")
-        
-        print("Seeding sample alerts...")
-        alerts = DataSeeder.seed_sample_alerts(regions)
-        print(f"Created {len(alerts)} sample alerts")
+
+        if include_samples:
+            print("Seeding sample users...")
+            user_count = DataSeeder.seed_sample_users(5)
+            print(f"Created {user_count} sample users")
+
+            print("Seeding sample alerts...")
+            alerts = DataSeeder.seed_sample_alerts(regions)
+            print(f"Created {len(alerts)} sample alerts")
+        else:
+            print("Skipping sample users/alerts (real data mode)")
         
         print("\n✅ Database seeding complete!")
         print("\nDefault admin credentials:")

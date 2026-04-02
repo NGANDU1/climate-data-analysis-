@@ -6,6 +6,7 @@ Run this script to populate the database with initial data.
 
 import os
 import sys
+import argparse
 
 # Add parent directory to path so imports work when run from this folder.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,7 +16,15 @@ from models import db
 from services.data_seeder import DataSeeder
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Seed Climate EWS database")
+    parser.add_argument(
+        "--with-samples",
+        action="store_true",
+        help="Include sample users/alerts (demo data).",
+    )
+    args = parser.parse_args(argv)
+
     print("=" * 60)
     print("Climate Early Warning System - Database Seeder")
     print("=" * 60)
@@ -29,7 +38,7 @@ def main() -> int:
         print("OK: Database tables created")
 
         try:
-            DataSeeder.seed_all()
+            DataSeeder.seed_all(include_samples=args.with_samples)
         except Exception as exc:
             print(f"\nERROR during seeding: {exc}")
             import traceback
@@ -52,4 +61,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

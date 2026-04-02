@@ -42,8 +42,11 @@ gunicorn --config gunicorn_config.py wsgi:app
 ## Key Commands
 
 ```bash
-# Seed database (reset data)
+# Seed database (real data mode - no demo users)
 python seed_database.py
+
+# (Optional) Seed with demo users/alerts
+# python seed_database.py --with-samples
 
 # Install dependencies
 pip install -r requirements.txt
