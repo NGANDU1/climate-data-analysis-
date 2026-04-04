@@ -7,7 +7,7 @@
 ## 📁 File Structure Overview
 
 ```
-templatemo_607_glass_admin/
+frontend/
 ├── home.html              ⭐ NEW! Main Landing Page (Start Here!)
 ├── index.html             📊 Main Dashboard (Weather Monitoring)
 ├── login.html             🔐 Admin Login

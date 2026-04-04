@@ -14,7 +14,7 @@ define('DB_CHARSET', 'utf8mb4');
 // Application Configuration
 define('APP_NAME', 'Climate Early Warning System - Zambia');
 define('APP_VERSION', '1.0.0');
-define('APP_URL', 'http://localhost/project/templatemo_607_glass_admin');
+define('APP_URL', 'http://localhost/project/frontend');
 
 // API Configuration
 define('API_URL', 'http://localhost/project/api');

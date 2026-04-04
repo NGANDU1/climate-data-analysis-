@@ -48,7 +48,7 @@ python-climate-ews/
 │   ├── weather_service.py          # Weather data processing
 │   └── data_seeder.py              # Sample data generator
 │
-└── templatemo_607_glass_admin/     # Frontend (existing)
+└── frontend/                      # Frontend (existing)
     ├── index.html
     ├── subscribe.html
     ├── alerts.html

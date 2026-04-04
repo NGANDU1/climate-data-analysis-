@@ -139,7 +139,7 @@ curl -X POST http://localhost:5000/api/admin/login \
   - services/                   # Services layer
 
 📁 Frontend:
-  - templatemo_607_glass_admin/ # HTML/CSS/JS
+  - frontend/ # HTML/CSS/JS
 ```
 
 ## Troubleshooting

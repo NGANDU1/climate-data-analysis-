@@ -11,10 +11,11 @@ def create_app(config_name=None):
         config_name = os.environ.get('FLASK_ENV', 'development')
     
     # Disable Flask's built-in static handler because it conflicts with our catch-all routes.
-    # We serve the public UI from `../templatemo_607_glass_admin` and shared assets from `../assets`.
+    # We serve the public UI from `../frontend` and shared assets from `../assets`.
+    frontend_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
     app = Flask(
         __name__,
-        static_folder="../templatemo_607_glass_admin",
+        static_folder=frontend_folder,
         static_url_path=None,
     )
 
@@ -99,13 +100,20 @@ def create_app(config_name=None):
             return send_from_directory(assets_folder, path)
         return jsonify({'error': 'Not found'}), 404
 
-    # Compatibility: some links may include the folder name in the URL.
-    @app.route('/templatemo_607_glass_admin/')
-    @app.route('/templatemo_607_glass_admin/<path:path>')
-    def serve_public_compat(path='home.html'):
+    # Some deployments may include the folder name in the URL.
+    @app.route('/frontend/')
+    @app.route('/frontend/<path:path>')
+    def serve_public_prefixed(path='home.html'):
         if os.path.exists(os.path.join(app.static_folder, path)):
             return send_from_directory(app.static_folder, path)
         return send_from_directory(app.static_folder, 'home.html')
+
+    # Legacy compatibility: redirect old template folder URLs to /frontend/.
+    @app.route('/templatemo_607_glass_admin/')
+    @app.route('/templatemo_607_glass_admin/<path:path>')
+    def redirect_legacy_template_path(path=''):
+        target = f"/frontend/{path}" if path else "/frontend/"
+        return redirect(target, code=301)
     
     @app.route('/<path:path>')
     def serve_static(path):

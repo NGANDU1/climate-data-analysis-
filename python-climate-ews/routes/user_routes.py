@@ -230,6 +230,13 @@ def user_settings(user_id: int):
     if settings is None or not isinstance(settings, dict):
         return jsonify({"success": False, "message": "settings must be an object"}), 400
 
+    # Prevent normal users from storing "system-level" (admin-only) settings keys.
+    if role != "admin":
+        admin_only_keys = {"system_name", "region", "provinces_monitored", "system_status"}
+        for k in list(settings.keys()):
+            if k in admin_only_keys:
+                settings.pop(k, None)
+
     try:
         if not setting:
             setting = UserSetting(user_id=user_id)

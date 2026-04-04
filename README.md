@@ -63,7 +63,7 @@ A comprehensive climate monitoring system designed for Zambia to provide real-ti
 
 **Public Dashboard:**
 ```
-http://localhost/climate-ews/templatemo_607_glass_admin/index.html
+http://localhost/climate-ews/frontend/index.html
 ```
 
 **Admin Panel:**
@@ -77,7 +77,7 @@ http://localhost/climate-ews/admin/index.html
 
 ```
 project/
-├── templatemo_607_glass_admin/    # Public dashboard
+├── frontend/                     # Public dashboard
 │   ├── index.html                 # Main climate dashboard
 │   ├── climate-dashboard.js       # Dashboard JavaScript
 │   └── templatemo-glass-admin-*   # CSS & base JS

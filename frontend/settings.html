@@ -187,29 +187,29 @@
                                 </div>
                             </div>
                             <div class="profile-info">
-                                <h2>Climate EWS Administrator</h2>
+                                <h2 id="settings-profile-name">Climate EWS</h2>
                                 <p>admin@123 • System Administrator</p>
                             </div>
                         </div>
 
-                        <div class="settings-section">
+                        <div class="settings-section admin-only" data-admin-only-section="system">
                             <h3 class="settings-section-title">System Information</h3>
                             <div class="form-grid">
                                 <div class="form-group-settings">
                                     <label>System Name</label>
-                                    <input type="text" value="Climate Early Warning System" data-setting-key="system_name">
+                                    <input type="text" value="Climate Early Warning System" data-setting-key="system_name" data-setting-scope="admin">
                                 </div>
                                 <div class="form-group-settings">
                                     <label>Region</label>
-                                    <input type="text" value="Zambia" data-setting-key="region">
+                                    <input type="text" value="Zambia" data-setting-key="region" data-setting-scope="admin">
                                 </div>
                                 <div class="form-group-settings">
                                     <label>Provinces Monitored</label>
-                                    <input type="text" value="10" data-setting-key="provinces_monitored">
+                                    <input type="text" value="10" data-setting-key="provinces_monitored" data-setting-scope="admin">
                                 </div>
                                 <div class="form-group-settings">
                                     <label>System Status</label>
-                                    <input type="text" value="Operational" data-setting-key="system_status" style="color: var(--success);">
+                                    <input type="text" value="Operational" data-setting-key="system_status" data-setting-scope="admin" style="color: var(--success);">
                                 </div>
                             </div>
                         </div>
@@ -600,9 +600,9 @@
     </button>
 
     <!-- Footer -->
-    <footer class="site-footer">
-        <p>Copyright © 2026 Your Company. Designed by <a href="https://templatemo.com" target="_blank" rel="nofollow">TemplateMo</a></p>
-    </footer>
+        <footer class="site-footer">
+            <p>Copyright © 2026 Climate EWS Zambia | Katongo Ngandu | SIN 2210679991</p>
+        </footer>
 
     <script src="templatemo-glass-admin-script.js"></script>
     <!-- TemplateMo 607 Glass Admin -->

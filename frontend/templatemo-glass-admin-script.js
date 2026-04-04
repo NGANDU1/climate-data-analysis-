@@ -260,8 +260,8 @@
     // Settings Persistence (localStorage)
     // ============================================
     function initSettingsPersistence() {
-        const fields = Array.from(document.querySelectorAll('[data-setting-key]'));
-        if (fields.length === 0) return;
+        const allFields = Array.from(document.querySelectorAll('[data-setting-key]'));
+        if (allFields.length === 0) return;
 
         const storageKey = 'ews_settings_v1';
 
@@ -327,10 +327,57 @@
             return null;
         }
 
-        async function loadFromServer() {
-            const adminCtx = getAdminContext();
-            const userCtx = getUserContext();
+        const adminCtx = getAdminContext();
+        const userCtx = getUserContext();
+        const isAdmin = !!adminCtx;
 
+        // Restrict admin-only sections/fields for normal users.
+        if (!isAdmin) {
+            document.querySelectorAll('[data-admin-only-section]').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('[data-setting-scope="admin"]').forEach(el => {
+                try {
+                    el.setAttribute('disabled', 'disabled');
+                    el.setAttribute('readonly', 'readonly');
+                } catch (_) {}
+            });
+        }
+
+        // Update settings page identity text (avoid showing "Administrator" for normal users).
+        const nameEl =
+            document.getElementById('settings-profile-name') ||
+            document.querySelector('#tab-profile .profile-info h2');
+        const metaEl =
+            document.getElementById('settings-profile-meta') ||
+            document.querySelector('#tab-profile .profile-info p');
+        if (nameEl) {
+            if (adminCtx && adminCtx.admin && adminCtx.admin.username) {
+                nameEl.textContent = adminCtx.admin.username;
+            } else if (userCtx && userCtx.user && userCtx.user.name) {
+                nameEl.textContent = userCtx.user.name;
+            } else {
+                nameEl.textContent = 'Climate EWS';
+            }
+        }
+        if (metaEl) {
+            if (adminCtx && adminCtx.admin && adminCtx.admin.username) {
+                metaEl.textContent = 'System Administrator';
+            } else if (userCtx && userCtx.user) {
+                const email = userCtx.user.email ? String(userCtx.user.email) : '';
+                metaEl.textContent = email ? email : 'User';
+            } else {
+                metaEl.textContent = 'Signed in';
+            }
+        }
+
+        const fields = allFields.filter(el => {
+            const scope = el.getAttribute('data-setting-scope');
+            return isAdmin ? true : scope !== 'admin';
+        });
+        if (fields.length === 0) return;
+
+        async function loadFromServer() {
             try {
                 if (adminCtx) {
                     const res = await fetch(`${API_BASE}/admin/settings?admin_id=${encodeURIComponent(adminCtx.admin.id)}`, {
@@ -352,9 +399,6 @@
         }
 
         async function saveToServer(settings) {
-            const adminCtx = getAdminContext();
-            const userCtx = getUserContext();
-
             if (adminCtx) {
                 const res = await fetch(`${API_BASE}/admin/settings`, {
                     method: 'PUT',

@@ -37,7 +37,7 @@ A comprehensive landing page featuring:
 - ✅ Responsive design for mobile devices
 - ✅ Smooth scroll animations
 
-**Location**: `templatemo_607_glass_admin/home.html`
+**Location**: `frontend/home.html`
 
 ---
 

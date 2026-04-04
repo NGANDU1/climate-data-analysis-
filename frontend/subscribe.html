@@ -112,12 +112,21 @@
         </div>
     </div>
 
-    <footer class="site-footer" style="position: fixed; bottom: 0; width: 100%; margin-left: 0; padding: 20px;">
-        <p>Copyright © 2026 Climate EWS Zambia | University Project</p>
+    <footer class="site-footer" style="margin-left: 0; padding: 20px;">
+        <p>Copyright © 2026 Climate EWS Zambia | Katongo Ngandu | SIN 2210679991</p>
     </footer>
 
     <script src="templatemo-glass-admin-script.js"></script>
     <script>
+        (function () {
+            const inPrefixed = window.location.pathname.startsWith('/frontend/');
+            const target = inPrefixed ? '/frontend/index.html' : '/dashboard';
+            const candidates = Array.from(document.querySelectorAll('a[href="index.html"]'));
+            const backLink =
+                candidates.find(a => (a.textContent || '').includes('Back to Dashboard')) || candidates[0];
+            if (backLink) backLink.setAttribute('href', target);
+        })();
+
         document.getElementById('subscription-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
