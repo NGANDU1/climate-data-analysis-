@@ -407,6 +407,74 @@
             border-color: var(--primary);
         }
 
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .input-modern,
+        .select-modern,
+        .textarea-modern {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(30, 41, 59, 0.35);
+            color: #e2e8f0;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .input-modern:focus,
+        .select-modern:focus,
+        .textarea-modern:focus {
+            border-color: rgba(16, 185, 129, 0.75);
+            background: rgba(30, 41, 59, 0.55);
+        }
+
+        .textarea-modern {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .notice {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(30, 41, 59, 0.35);
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -614,7 +682,7 @@
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
                 </a>
-                <button class="btn-modern btn-primary-modern">
+                <button class="btn-modern btn-primary-modern" id="new-alert-btn">
                     <i class="fas fa-plus"></i>
                     New Alert
                 </button>
@@ -712,6 +780,68 @@
             </div>
         </div>
 
+        <!-- Send Alert -->
+        <div class="chart-card" id="send-alert-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Send Alert (Email/SMS)</h3>
+                <button class="btn-modern" id="send-alert-scroll" title="Jump to this form">
+                    <i class="fas fa-bullhorn"></i>
+                </button>
+            </div>
+
+            <form id="admin-alert-form" class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="alert-region">Region</label>
+                    <select id="alert-region" class="select-modern">
+                        <option value="">National (All)</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="alert-prediction-date">Prediction Day</label>
+                    <input id="alert-prediction-date" class="input-modern" type="date" />
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="alert-risk-level">Risk Level</label>
+                    <select id="alert-risk-level" class="select-modern" required>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="alert-disaster-type">Type</label>
+                    <select id="alert-disaster-type" class="select-modern">
+                        <option value="general">General</option>
+                        <option value="flood">Flood</option>
+                        <option value="drought">Drought</option>
+                        <option value="storm">Storm</option>
+                        <option value="extreme_heat">Extreme Heat</option>
+                        <option value="extreme_cold">Extreme Cold</option>
+                    </select>
+                </div>
+
+                <div class="form-field full">
+                    <label class="form-label" for="alert-message">Message</label>
+                    <textarea id="alert-message" class="textarea-modern" required placeholder="Example: Lusaka critical level predicted for 2026-04-10. Heavy rainfall expected—avoid low-lying areas and follow local guidance."></textarea>
+                </div>
+
+                <div class="form-field full">
+                    <div class="form-actions">
+                        <button type="reset" class="btn-modern">Clear</button>
+                        <button type="submit" class="btn-modern btn-primary-modern" id="send-alert-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Now
+                        </button>
+                    </div>
+                    <div id="alert-notice" class="notice"></div>
+                </div>
+            </form>
+        </div>
+
         <!-- Recent Activity -->
         <div class="activity-section">
             <div class="section-header">
@@ -791,6 +921,20 @@
                 throw new Error(`Expected JSON from ${url} but got ${contentType || 'unknown'} (${response.status}). ${text.slice(0, 120)}`);
             }
             const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || data.error || `Request failed (${response.status})`);
+            }
+            return data;
+        }
+
+        async function postJson(url, payload) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload || {})
+            });
+            const contentType = response.headers.get('content-type') || '';
+            const data = contentType.includes('application/json') ? await response.json() : { success: false, message: await response.text() };
             if (!response.ok) {
                 throw new Error(data.message || data.error || `Request failed (${response.status})`);
             }
@@ -963,6 +1107,80 @@
             }).join('');
         }
 
+        async function loadRegionsForAlertForm() {
+            const select = document.getElementById('alert-region');
+            if (!select) return;
+
+            try {
+                const result = await fetchJson(`${API_BASE}/admin/regions`);
+                const regions = (result && result.data) || [];
+                const existing = new Set(Array.from(select.options).map(o => o.value));
+
+                regions.forEach(r => {
+                    const id = String(r.id ?? '');
+                    if (!id || existing.has(id)) return;
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = r.name || `Region ${id}`;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.warn('Failed to load regions:', err);
+            }
+        }
+
+        function showAlertNotice(message, type) {
+            const box = document.getElementById('alert-notice');
+            if (!box) return;
+            box.textContent = message;
+            box.style.display = 'block';
+
+            const palette = {
+                success: { bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)' },
+                error: { bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)' },
+                info: { bg: 'rgba(14, 165, 233, 0.12)', border: 'rgba(14, 165, 233, 0.35)' },
+            };
+            const p = palette[type] || palette.info;
+            box.style.background = p.bg;
+            box.style.borderColor = p.border;
+        }
+
+        async function handleSendAlert(e) {
+            e.preventDefault();
+            const btn = document.getElementById('send-alert-btn');
+            if (btn) btn.disabled = true;
+
+            try {
+                const regionId = (document.getElementById('alert-region')?.value || '').trim();
+                const predictionDate = (document.getElementById('alert-prediction-date')?.value || '').trim();
+                const riskLevel = (document.getElementById('alert-risk-level')?.value || '').trim();
+                const disasterType = (document.getElementById('alert-disaster-type')?.value || '').trim();
+                const message = (document.getElementById('alert-message')?.value || '').trim();
+
+                const payload = {
+                    risk_level: riskLevel,
+                    disaster_type: disasterType || 'general',
+                    region_id: regionId || null,
+                    prediction_date: predictionDate || null,
+                    message
+                };
+
+                const result = await postJson(`${API_BASE}/alerts/send`, payload);
+                const nr = result.notification_result || {};
+                const sent = Number(nr.sent_count ?? nr.total_recipients ?? 0);
+                const sms = Number(nr.sms_sent ?? 0);
+                const email = Number(nr.email_sent ?? 0);
+
+                showAlertNotice(`Alert sent. Notifications: ${sent} (SMS: ${sms}, Email: ${email}).`, 'success');
+                await loadRecentActivity();
+            } catch (err) {
+                console.error(err);
+                showAlertNotice(err && err.message ? err.message : 'Failed to send alert', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
         // Add interactivity
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
@@ -970,6 +1188,20 @@
                 this.classList.add('active');
             });
         });
+
+        document.getElementById('new-alert-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('send-alert-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            window.setTimeout(() => document.getElementById('alert-message')?.focus(), 350);
+        });
+
+        document.getElementById('send-alert-scroll')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('send-alert-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            window.setTimeout(() => document.getElementById('alert-message')?.focus(), 350);
+        });
+
+        document.getElementById('admin-alert-form')?.addEventListener('submit', handleSendAlert);
 
             // Logout -> clear session + go to login
             document.querySelectorAll('[data-action="logout"]').forEach(link => {
@@ -987,7 +1219,7 @@
         (async () => {
             if (!requireAuth()) return;
             try {
-                await Promise.all([loadDashboardStats(), loadAlertTrends(), loadRecentActivity()]);
+                await Promise.all([loadDashboardStats(), loadAlertTrends(), loadRecentActivity(), loadRegionsForAlertForm()]);
             } catch (err) {
                 console.error(err);
                 const box = document.getElementById('data-error');

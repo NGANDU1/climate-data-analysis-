@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signing you in…</title>
+    <link rel="stylesheet" href="templatemo-glass-admin-style.css">
+    <link rel="stylesheet" href="../assets/css/gov-theme.css">
+</head>
+<body>
+    <div class="background"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+    <div class="dashboard" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+        <div class="glass-card" style="max-width: 520px; width: 100%; padding: 32px;">
+            <h1 style="margin: 0 0 10px 0; font-size: 22px;">Signing you in…</h1>
+            <p style="margin: 0; color: var(--text-muted);">Please wait. If nothing happens, you can go back to <a href="/dashboard">Dashboard</a>.</p>
+            <div id="msg" style="margin-top: 16px; font-size: 13px; color: var(--text-secondary);"></div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>Copyright © 2026 Climate EWS Zambia | Katongo Ngandu | SIN 2210679991</p>
+    </footer>
+
+    <script>
+        (function () {
+            const msg = document.getElementById('msg');
+            const params = new URLSearchParams(window.location.search);
+
+            const token = params.get('token');
+            const expiresAt = params.get('expires_at');
+            const role = params.get('role') || 'user';
+            const userJson = params.get('user');
+            const nextPath = params.get('next') || '/dashboard';
+
+            if (!token) {
+                if (msg) msg.textContent = 'Missing token. Please try signing in again.';
+                return;
+            }
+
+            let user = null;
+            try { user = userJson ? JSON.parse(userJson) : null; } catch (_) { user = null; }
+
+            try {
+                window.localStorage.setItem('userSession', JSON.stringify({
+                    role,
+                    user,
+                    token,
+                    expiresAt,
+                    loginAt: new Date().toISOString(),
+                    via: 'oauth'
+                }));
+            } catch (e) {
+                if (msg) msg.textContent = 'Could not store session in browser storage.';
+                return;
+            }
+
+            try {
+                window.sessionStorage.removeItem('adminToken');
+                window.sessionStorage.removeItem('adminUser');
+            } catch (_) {}
+
+            let target = String(nextPath || '').trim();
+            if (!target.startsWith('/')) target = '/dashboard';
+            window.location.replace(target);
+        })();
+    </script>
+    <script src="../assets/js/bfcache-reload.js"></script>
+</body>
+</html>

@@ -68,6 +68,14 @@ def create_app(config_name=None):
     except Exception:
         # Don't block app startup if scheduler fails
         pass
+
+    # Background notification dispatcher (sends email/SMS for new alerts).
+    try:
+        from services.notification_dispatcher import start_notification_dispatcher
+
+        start_notification_dispatcher(app)
+    except Exception:
+        pass
     
     # Serve frontend files
     @app.route('/')

@@ -4,7 +4,7 @@ from models.alert import Alert
 from models.region import Region
 from models.user import User
 from services.notification_service import NotificationService
-from datetime import datetime
+from datetime import datetime, date as dt_date
 
 api = Blueprint('alerts', __name__)
 
@@ -53,7 +53,7 @@ def get_all_alerts():
 def send_alert():
     """Send manual alert"""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         
         # Validate required fields
         if not data.get('message'):
@@ -67,13 +67,41 @@ def send_alert():
                 'success': False,
                 'message': 'Risk level is required'
             }), 400
+
+        # Optional: accept region_name as a convenience for UIs that don't know region_id.
+        region_id = data.get('region_id')
+        region_name = (data.get('region_name') or '').strip()
+        if (not region_id) and region_name:
+            region = Region.query.filter(db.func.lower(Region.name) == region_name.lower()).first()
+            if not region:
+                return jsonify({'success': False, 'message': f"Unknown region: {region_name}"}), 400
+            region_id = region.id
+
+        # Optional: prediction_date (YYYY-MM-DD) to help compose the message.
+        prediction_date_raw = (data.get('prediction_date') or '').strip()
+        prediction_date: dt_date | None = None
+        if prediction_date_raw:
+            try:
+                prediction_date = dt_date.fromisoformat(prediction_date_raw)
+            except Exception:
+                return jsonify({'success': False, 'message': 'prediction_date must be YYYY-MM-DD'}), 400
+
+        message = str(data.get('message') or '').strip()
+        risk_level = str(data.get('risk_level') or '').strip()
+        disaster_type = str(data.get('disaster_type') or 'general').strip()
+
+        if prediction_date:
+            # If admin didn't include the date explicitly, prepend a clear headline.
+            if prediction_date.isoformat() not in message:
+                headline_region = region_name or (Region.query.get(region_id).name if region_id else 'National')
+                message = f"{headline_region}: {risk_level.title()} level predicted for {prediction_date.isoformat()}. {message}"
         
         # Create alert
         alert = Alert(
-            message=data['message'],
-            risk_level=data['risk_level'],
-            disaster_type=data.get('disaster_type', 'general'),
-            region_id=data.get('region_id'),
+            message=message,
+            risk_level=risk_level,
+            disaster_type=disaster_type,
+            region_id=region_id,
             is_manual=True
         )
         

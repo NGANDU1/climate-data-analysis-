@@ -230,6 +230,16 @@ def get_weather_trends():
         }), 500
 
 
+@api.route('/regions', methods=['GET'])
+def list_regions():
+    """List regions (for admin UI dropdowns)."""
+    try:
+        regions = Region.query.order_by(Region.name.asc()).all()
+        return jsonify({"success": True, "data": [r.to_dict() for r in regions], "count": len(regions)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @api.route('/settings', methods=['GET', 'PUT'])
 def admin_settings():
     """

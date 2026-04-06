@@ -24,7 +24,7 @@ I've completely redesigned your admin dashboard, login, and users pages with a s
 - Pulsing logo animation
 - Floating input icons
 - Smooth hover effects
-- Social login buttons (Google, Apple, GitHub)
+- Social login buttons (Google, GitHub)
 - Loading animation on submit
 - Modern theme toggle
 

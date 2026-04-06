@@ -1,0 +1,23 @@
+# Environment / secrets
+.env
+**/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.sqlite3
+
+# Flask instance / local DBs
+python-climate-ews/instance/
+
+# Node / misc
+node_modules/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+

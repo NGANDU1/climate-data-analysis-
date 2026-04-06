@@ -29,6 +29,31 @@ Create file `python-climate-ews\.env`:
 OPENWEATHER_API_KEY=paste_your_key_here
 SECRET_KEY=my_secret_2025
 DATABASE_URL=sqlite:///instance/climate_ews.db
+
+# Automatic alerts notifications
+NOTIFICATIONS_ENABLED=true
+NOTIFICATIONS_SIMULATE=true
+
+# Email (SMTP) - configure to send real emails
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_TLS=true
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM="Climate EWS <your_email@gmail.com>"
+
+# SMS (Twilio) - configure to send real SMS
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+1234567890
+
+# (Optional) Social sign-in (OAuth) for user signup/login:
+# Google OAuth (Authorized redirect URI: http://localhost:5000/api/auth/oauth/google/callback)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+# GitHub OAuth (Authorization callback URL: http://localhost:5000/api/auth/oauth/github/callback)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
 ### **Step 3: Run Commands**
