@@ -87,17 +87,24 @@ class NotificationService:
         return True
     
     @staticmethod
-    def send_alert(alert):
+    def send_alert(alert, method_filter: set[str] | None = None):
         """
         Send alert notifications to all subscribed users
         
         Args:
             alert: Alert object
+            method_filter: optional set of {"sms","email"} to force channels
             
         Returns:
             dict with notification results
         """
         from models.user import User
+
+        if method_filter is not None:
+            method_filter = {str(m).strip().lower() for m in method_filter if str(m).strip()}
+            method_filter = {m for m in method_filter if m in {"sms", "email"}}
+            if not method_filter:
+                method_filter = None
         
         # Get all active users
         users = User.query.filter_by(is_active=True).all()
@@ -121,6 +128,9 @@ class NotificationService:
                 notify_methods.append('sms')
             if user.subscription_type in ['email', 'both']:
                 notify_methods.append('email')
+
+            if method_filter is not None:
+                notify_methods = [m for m in notify_methods if m in method_filter]
             
             # Send notifications
             for method in notify_methods:

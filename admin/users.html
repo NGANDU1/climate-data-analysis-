@@ -124,10 +124,11 @@
                 <li class="nav-item"><a href="models.html" class="nav-link"><i class="fas fa-robot nav-icon"></i>Model Training</a></li>
                 <li class="nav-item"><a href="monitoring.html" class="nav-link"><i class="fas fa-heart-pulse nav-icon"></i>Monitoring</a></li>
                 <li class="nav-item"><a href="reports.html" class="nav-link"><i class="fas fa-file-export nav-icon"></i>Reports</a></li>
-                <li class="nav-item"><a href="users.html" class="nav-link active"><i class="fas fa-users nav-icon"></i>Users</a></li>
-                <li class="nav-item"><a href="../analytics.html" class="nav-link"><i class="fas fa-chart-line nav-icon"></i>Analytics</a></li>
-                </ul>
-            </li>
+	                <li class="nav-item"><a href="users.html" class="nav-link active"><i class="fas fa-users nav-icon"></i>Users</a></li>
+	                <li class="nav-item"><a href="alerts.html" class="nav-link"><i class="fas fa-bell nav-icon"></i>Alerts</a></li>
+	                <li class="nav-item"><a href="../analytics.html" class="nav-link"><i class="fas fa-chart-line nav-icon"></i>Analytics</a></li>
+	                </ul>
+	            </li>
             <li class="nav-section"><span class="nav-section-title">System</span>
                 <ul><li class="nav-item"><a href="../settings.html" class="nav-link"><i class="fas fa-cog nav-icon"></i>Settings</a></li>
                 <li class="nav-item"><a href="/" class="nav-link" data-action="logout"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</a></li></ul>
@@ -362,8 +363,21 @@
 
                 if (totalEl) totalEl.textContent = total.toLocaleString();
 
-                const sms = Number(statsRes?.stats?.sms_subscribers ?? allUsers.filter(u => (u.subscription_type || '').toLowerCase() === 'sms').length) || 0;
-                const email = Number(statsRes?.stats?.email_subscribers ?? allUsers.filter(u => (u.subscription_type || '').toLowerCase() === 'email').length) || 0;
+                const stats = statsRes?.stats || {};
+                const sms = (() => {
+                    if (stats.sms_recipients != null) return Number(stats.sms_recipients) || 0;
+                    if (stats.sms_subscribers != null && stats.both_subscribers != null) {
+                        return (Number(stats.sms_subscribers) || 0) + (Number(stats.both_subscribers) || 0);
+                    }
+                    return allUsers.filter(u => ['sms', 'both'].includes((u.subscription_type || '').toLowerCase())).length;
+                })();
+                const email = (() => {
+                    if (stats.email_recipients != null) return Number(stats.email_recipients) || 0;
+                    if (stats.email_subscribers != null && stats.both_subscribers != null) {
+                        return (Number(stats.email_subscribers) || 0) + (Number(stats.both_subscribers) || 0);
+                    }
+                    return allUsers.filter(u => ['email', 'both'].includes((u.subscription_type || '').toLowerCase())).length;
+                })();
                 if (smsEl) smsEl.textContent = sms.toLocaleString();
                 if (emailEl) emailEl.textContent = email.toLocaleString();
 

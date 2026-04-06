@@ -52,7 +52,12 @@ def dispatch_pending_alerts(max_alerts: int = 25) -> dict:
 
     for alert in pending:
         processed += 1
-        result = NotificationService.send_alert(alert)
+        method_filter = None
+        if (not getattr(alert, "is_manual", False)) and str(getattr(alert, "risk_level", "")).strip().lower() == "medium":
+            # Medium warnings: auto-send email notifications.
+            method_filter = {"email"}
+
+        result = NotificationService.send_alert(alert, method_filter=method_filter)
         alert.is_sent = bool(result.get("success"))
         alert.sent_count = int(result.get("sent_count") or 0)
         try:
@@ -100,4 +105,3 @@ def start_notification_dispatcher(app) -> None:
 
 
 _started = False
-

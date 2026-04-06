@@ -1,10 +1,12 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request, stream_with_context
 from models import db
 from models.alert import Alert
 from models.region import Region
 from models.user import User
 from services.notification_service import NotificationService
 from datetime import datetime, date as dt_date
+import json
+import time
 
 api = Blueprint('alerts', __name__)
 
@@ -29,7 +31,10 @@ def get_all_alerts():
         total_alerts = Alert.query.count()
         critical_count = Alert.query.filter(Alert.risk_level == 'critical').count()
         high_count = Alert.query.filter(Alert.risk_level == 'high').count()
+        medium_count = Alert.query.filter(Alert.risk_level == 'medium').count()
+        low_count = Alert.query.filter(Alert.risk_level == 'low').count()
         manual_count = Alert.query.filter(Alert.is_manual.is_(True)).count()
+        pending_count = Alert.query.filter(Alert.is_sent.is_(False)).count()
         
         return jsonify({
             'success': True,
@@ -39,7 +44,10 @@ def get_all_alerts():
                 'total_alerts': total_alerts,
                 'critical_count': critical_count,
                 'high_count': high_count,
-                'manual_count': manual_count
+                'medium_count': medium_count,
+                'low_count': low_count,
+                'manual_count': manual_count,
+                'pending_count': pending_count
             }
         })
         
@@ -48,6 +56,50 @@ def get_all_alerts():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@api.route('/stream', methods=['GET'])
+def stream_alerts():
+    """
+    Server-Sent Events stream for newly created alerts.
+
+    Query params:
+      - since_id: only stream alerts with id > since_id (default 0)
+    """
+    try:
+        since_id = request.args.get('since_id', 0, type=int) or 0
+    except Exception:
+        since_id = 0
+
+    def gen():
+        last_id = since_id
+        last_ping = time.time()
+        while True:
+            try:
+                new_alerts = (
+                    Alert.query.filter(Alert.id > last_id)
+                    .order_by(Alert.id.asc())
+                    .limit(100)
+                    .all()
+                )
+                for a in new_alerts:
+                    payload = json.dumps(a.to_dict(), separators=(',', ':'))
+                    yield f"data: {payload}\n\n"
+                    last_id = max(last_id, int(a.id or 0))
+
+                # Keep-alive comment every ~15s so proxies don't close the connection.
+                now = time.time()
+                if now - last_ping >= 15:
+                    yield ": keep-alive\n\n"
+                    last_ping = now
+
+            except Exception:
+                # Best-effort stream; if DB is temporarily unavailable, keep the connection open.
+                pass
+
+            time.sleep(2)
+
+    return Response(stream_with_context(gen()), mimetype='text/event-stream')
 
 @api.route('/send', methods=['POST'])
 def send_alert():
@@ -90,6 +142,24 @@ def send_alert():
         risk_level = str(data.get('risk_level') or '').strip()
         disaster_type = str(data.get('disaster_type') or 'general').strip()
 
+        # Optional: force delivery channels for this send (still respects user contact availability).
+        # Accepted shapes: ["email","sms"], "email", "sms", "both"
+        method_filter = None
+        channels_raw = data.get('channels')
+        if isinstance(channels_raw, list):
+            method_filter = {str(x).strip().lower() for x in channels_raw if str(x).strip()}
+        elif isinstance(channels_raw, str):
+            raw = channels_raw.strip().lower()
+            if raw in {"email", "sms"}:
+                method_filter = {raw}
+            elif raw == "both":
+                method_filter = {"email", "sms"}
+
+        if method_filter is not None:
+            method_filter = {m for m in method_filter if m in {"email", "sms"}}
+            if not method_filter:
+                method_filter = None
+
         if prediction_date:
             # If admin didn't include the date explicitly, prepend a clear headline.
             if prediction_date.isoformat() not in message:
@@ -109,7 +179,7 @@ def send_alert():
         db.session.commit()
         
         # Send notifications
-        notification_result = NotificationService.send_alert(alert)
+        notification_result = NotificationService.send_alert(alert, method_filter=method_filter)
         
         # Update sent status
         alert.is_sent = notification_result['success']

@@ -174,6 +174,11 @@ def get_user_stats():
         sms_subscribers = User.query.filter_by(subscription_type='sms').count()
         email_subscribers = User.query.filter_by(subscription_type='email').count()
         both_subscribers = User.query.filter_by(subscription_type='both').count()
+
+        # "Recipients" counts represent users reachable by each channel.
+        # A "both" subscriber should be counted in both channel totals.
+        sms_recipients = sms_subscribers + both_subscribers
+        email_recipients = email_subscribers + both_subscribers
         
         return jsonify({
             'success': True,
@@ -183,7 +188,9 @@ def get_user_stats():
                 'inactive_users': total_users - active_users,
                 'sms_subscribers': sms_subscribers,
                 'email_subscribers': email_subscribers,
-                'both_subscribers': both_subscribers
+                'both_subscribers': both_subscribers,
+                'sms_recipients': sms_recipients,
+                'email_recipients': email_recipients
             }
         })
         
