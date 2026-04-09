@@ -80,11 +80,12 @@
                                         <th>Region</th>
                                         <th>Type</th>
                                         <th>Date</th>
+                                        <th>Status</th>
                                         <th style="width: 120px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="alerts-table-body">
-                                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading alerts...</td></tr>
+                                    <tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading alerts...</td></tr>
                                 </tbody>
                         </table>
                     </div>
@@ -134,10 +135,15 @@
             const tbody = document.getElementById('alerts-table-body');
             
             if (!alerts || alerts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No alerts found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No alerts found</td></tr>';
                 return;
             }
-            
+
+            const adminToken = (() => {
+                try { return sessionStorage.getItem('adminToken') || ''; } catch (_) { return ''; }
+            })();
+            const isAdmin = Boolean(adminToken);
+             
             tbody.innerHTML = alerts.map(alert => `
                 <tr>
                     <td><span class="risk-badge ${alert.risk_level}">${alert.risk_level}</span></td>
@@ -146,10 +152,21 @@
                     <td>${formatDisasterType(alert.disaster_type)}</td>
                     <td>${formatDate(alert.created_at)}</td>
                     <td>
-                        <button class="card-btn" style="padding: 8px 12px; background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.35); color: #dc2626;"
-                            onclick="deleteAlert(${Number(alert.id)})">
-                            Delete
-                        </button>
+                        ${
+                            alert.is_sent
+                                ? '<span class="risk-badge low" style="background: rgba(34, 197, 94, 0.16); color: #16a34a;">Sent</span>'
+                                : '<span class="risk-badge medium" style="background: rgba(245, 158, 11, 0.14); color: #d97706;">Pending</span>'
+                        }
+                    </td>
+                    <td>
+                        ${
+                            isAdmin
+                                ? `<button class="card-btn" style="padding: 8px 12px; background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.35); color: #dc2626;"
+                                    onclick="deleteAlert(${Number(alert.id)})">
+                                    Delete
+                                  </button>`
+                                : '<span style="color: var(--text-muted); font-size: 12px;">—</span>'
+                        }
                     </td>
                 </tr>
             `).join('');
@@ -161,7 +178,20 @@
                 const ok = confirm('Delete this alert? This cannot be undone.');
                 if (!ok) return;
 
-                const res = await fetch(`${API_BASE}/alerts/${encodeURIComponent(alertId)}`, { method: 'DELETE' });
+                const adminToken = (() => {
+                    try { return sessionStorage.getItem('adminToken') || ''; } catch (_) { return ''; }
+                })();
+                if (!adminToken) {
+                    alert('Admin login required');
+                    return;
+                }
+
+                const res = await fetch(`${API_BASE}/alerts/${encodeURIComponent(alertId)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
                 const json = await res.json().catch(() => ({}));
                 if (!res.ok || json.success === false) {
                     alert(json?.message || json?.error || 'Failed to delete alert');

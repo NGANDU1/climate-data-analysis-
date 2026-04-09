@@ -232,7 +232,7 @@
   border-radius: 18px;
   padding: 8px;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45);
-  z-index: 5;
+  z-index: 50;
 }
 
 .weather-location-option {

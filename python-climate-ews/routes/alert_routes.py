@@ -4,11 +4,21 @@ from models.alert import Alert
 from models.region import Region
 from models.user import User
 from services.notification_service import NotificationService
+from services.auth_context import get_auth_payload
 from datetime import datetime, date as dt_date
 import json
 import time
 
 api = Blueprint('alerts', __name__)
+
+
+def _require_admin():
+    auth = get_auth_payload(request)
+    if not auth:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    if auth.get("role") != "admin":
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+    return None
 
 @api.route('', methods=['GET'])
 def get_all_alerts():
@@ -204,6 +214,10 @@ def send_alert():
 def delete_alert(alert_id):
     """Delete an alert"""
     try:
+        err = _require_admin()
+        if err:
+            return err
+
         alert = Alert.query.get(alert_id)
         
         if not alert:
