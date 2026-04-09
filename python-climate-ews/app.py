@@ -69,6 +69,15 @@ def create_app(config_name=None):
         # Don't block app startup if scheduler fails
         pass
 
+    # Background realtime weather ingestion (writes WeatherData periodically when enabled).
+    try:
+        from services.realtime_weather_scheduler import start_realtime_weather_scheduler
+
+        start_realtime_weather_scheduler(app)
+    except Exception:
+        # Don't block app startup if scheduler fails
+        pass
+
     # Background notification dispatcher (sends email/SMS for new alerts).
     try:
         from services.notification_dispatcher import start_notification_dispatcher

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-default-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
     <title>Predictions - Climate EWS Zambia</title>
     <meta name="description" content="Risk predictions and outlook for Zambia climate early warning system">
 
@@ -10,59 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="templatemo-glass-admin-style.css">
-
-    <style>
-        .controls {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr 0.8fr 0.9fr auto;
-            gap: 12px;
-            align-items: end;
-            margin-bottom: 16px;
-        }
-        .controls label { display:block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-        .controls input, .controls select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            background: rgba(15, 23, 42, 0.55);
-            color: var(--text-primary);
-            outline: none;
-        }
-        .btn-mini {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            background: rgba(15, 23, 42, 0.55);
-            color: var(--text-primary);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-        .btn-mini.primary { background: var(--emerald); border-color: var(--emerald); color: white; }
-        .pred-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pred-table th, .pred-table td {
-            padding: 10px 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            text-align: left;
-            font-size: 13px;
-        }
-        .two-col { display:grid; grid-template-columns: 1fr; gap: 18px; }
-        .mono { font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: var(--text-muted); }
-        .big-risk { display:flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .big-risk h2 { margin: 0; font-size: 18px; }
-        .big-risk .pill { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--glass-border); font-weight: 700; }
-        .big-risk .pill.low { background: rgba(2, 132, 199, 0.08); color: var(--climate-blue); }
-        .big-risk .pill.medium { background: rgba(15, 118, 110, 0.10); color: var(--emerald-dark); }
-        .big-risk .pill.high { background: rgba(180, 83, 9, 0.10); color: var(--warning); }
-        .big-risk .pill.critical { background: rgba(185, 28, 28, 0.10); color: var(--danger); }
-        .actions { margin-top: 10px; padding-left: 18px; }
-        .actions li { margin: 6px 0; }
-        @media (max-width: 1100px) { .controls { grid-template-columns: 1fr 1fr; } }
-    </style>
-    <link rel="stylesheet" href="../assets/css/gov-theme.css">
+    <link rel="stylesheet" href="predictions-floodguard.css">
+    <!-- gov-theme.css intentionally not loaded on this page (dark FloodGuard style) -->
 </head>
 <body>
     <div class="background"></div>
@@ -125,73 +77,154 @@
         </aside>
 
         <main class="main-content">
-            <nav class="navbar">
-                <div>
-                    <h1 class="page-title">Predictions</h1>
-                    <p style="color: var(--text-muted); font-size: 14px;">View model/rule-based risk outlook by province and export results.</p>
-                </div>
-                <div class="navbar-right">
-                    <button class="card-btn" id="refresh-btn">Refresh</button>
-                    <button class="card-btn" id="download-btn">Download CSV</button>
-                </div>
-            </nav>
+            <section class="fg-shell" aria-label="Risk Predictions">
+                <div class="fg-topbar">
+                    <div class="fg-brand">
+                        <div class="fg-brand-mark" aria-hidden="true">🛡️</div>
+                        <div>Climate EWS <span style="color: var(--fg-accent); font-weight: 900;">Predictions</span></div>
+                    </div>
 
-            <div class="card">
-                <div class="controls">
-                    <div>
-                        <label for="region">Location (Province)</label>
-                        <select id="region"></select>
+                    <div class="fg-search">
+                        <span aria-hidden="true">🔎</span>
+                        <input id="fg-search" type="text" placeholder="Search Province" autocomplete="off">
                     </div>
-                    <div>
-                        <label for="date">Date</label>
-                        <input id="date" type="date">
-                    </div>
-                    <div>
-                        <label for="days">Days</label>
-                        <select id="days">
-                            <option value="1">1</option>
-                            <option value="3">3</option>
-                            <option value="7" selected>7</option>
-                            <option value="14">14</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="method">Forecast</label>
-                        <select id="method">
-                            <option value="naive" selected>Simple (Offline)</option>
-                            <option value="arima">ARIMA (If Installed)</option>
-                        </select>
-                    </div>
-                    <button class="btn-mini primary" id="predict-btn">Predict</button>
-                </div>
-                <div class="mono" id="status">Works offline using saved readings.</div>
-            </div>
 
-            <div class="two-col">
-                <div class="card">
-                    <div class="big-risk">
-                        <h2 class="card-title">Prediction</h2>
-                        <span class="pill low" id="risk-pill">LOW</span>
+                    <div class="fg-meta">
+                        <button class="fg-mini" id="refresh-btn" title="Refresh" type="button">↻</button>
+                        <div class="fg-chip"><strong id="fg-location-display">—</strong><span id="fg-date-display">—</span></div>
+                        <div class="fg-chip">Active Watch <strong id="fg-alert-count">—</strong></div>
+                        <div class="fg-chip"><span aria-hidden="true">🕒</span><strong id="fg-time-display">—</strong></div>
                     </div>
-                    <div class="mono" id="summary"></div>
-                    <div id="message" style="margin-top: 10px; font-size: 14px;"></div>
-                    <ul class="actions" id="actions"></ul>
-                    <table class="pred-table">
+                </div>
+
+                <div class="fg-grid">
+                    <div class="fg-card">
+                        <div class="fg-card-title">Current Flood Status</div>
+                        <div class="fg-risk">
+                            <div class="fg-risk-label">Flood Risk:</div>
+                            <div class="fg-risk-level low" id="fg-risk-level">LOW</div>
+                            <div class="fg-note" id="fg-risk-text">Loading outlook…</div>
+                        </div>
+                        <div class="fg-kpis">
+                            <div class="fg-kpi">
+                                <div class="k">Rainfall (next 24h)</div>
+                                <div class="v" id="fg-rain-24h">—</div>
+                            </div>
+                            <div class="fg-kpi">
+                                <div class="k">Confidence</div>
+                                <div class="v" id="fg-confidence">—</div>
+                            </div>
+                            <div class="fg-kpi">
+                                <div class="k">Temperature</div>
+                                <div class="v" id="fg-temp">—</div>
+                            </div>
+                            <div class="fg-kpi">
+                                <div class="k">Humidity</div>
+                                <div class="v" id="fg-hum">—</div>
+                            </div>
+                        </div>
+                        <div class="fg-details">
+                            <div class="mono" id="status">Works offline using saved readings.</div>
+                        </div>
+                    </div>
+
+                    <div class="fg-card">
+                        <div class="fg-card-title">Manual Flood Prediction Check</div>
+                        <div class="fg-form">
+                            <div class="fg-field">
+                                <label for="region">Current</label>
+                                <select id="region"></select>
+                            </div>
+                            <div class="fg-row">
+                                <div class="fg-field">
+                                    <label for="date">Date</label>
+                                    <input id="date" type="date">
+                                </div>
+                                <div class="fg-field">
+                                    <label for="method">Forecast</label>
+                                    <select id="method">
+                                        <option value="arima" selected>ARIMA</option>
+                                        <option value="naive">Naive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="fg-field">
+                                <label for="days-range">Forecast Horizon (days)</label>
+                                <div class="fg-slider">
+                                    <input id="days-range" type="range" min="1" max="14" value="14">
+                                    <span class="fg-pill" id="days-pill">14</span>
+                                </div>
+                                <select id="days" class="fg-hidden" aria-hidden="true" tabindex="-1"></select>
+                            </div>
+
+                            <button class="fg-btn" id="predict-btn" type="button">Check Flood Prediction</button>
+                        </div>
+                    </div>
+
+                    <div class="fg-card">
+                        <div class="fg-outlook-head">
+                            <div class="fg-card-title">14‑Day Risk Outlook</div>
+                            <div class="fg-outlook-tools">
+                                <button class="fg-mini" id="download-btn" type="button">Export CSV</button>
+                                <button class="fg-mini" id="export-pdf-btn" type="button">Export PDF</button>
+                            </div>
+                        </div>
+                        <div class="fg-outlook-list" id="fg-outlook-list"></div>
+                        <div class="fg-details">
+                            <div class="mono" id="summary"></div>
+                            <div id="message" style="margin-top: 8px; color: rgba(255,255,255,0.84); font-weight: 650;"></div>
+                            <ul class="actions" id="actions" style="margin-top: 10px;"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fg-charts">
+                    <div class="fg-card">
+                        <div class="fg-chart-top">
+                            <div class="fg-card-title">Flood Risk Probability Trend</div>
+                        </div>
+                        <div class="fg-canvas">
+                            <canvas id="fg-risk-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="fg-card">
+                        <div class="fg-chart-top">
+                            <div class="fg-card-title">Rainfall Forecast (mm)</div>
+                        </div>
+                        <div class="fg-canvas">
+                            <canvas id="fg-rain-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="fg-card">
+                        <div class="fg-chart-top">
+                            <div class="fg-card-title">Flood Vulnerability Heatmap</div>
+                        </div>
+                        <div class="fg-canvas">
+                            <canvas id="fg-heat-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keep the original table for debugging / detailed export -->
+                <div class="fg-card" style="margin-top: 14px;">
+                    <div class="fg-card-title">Detailed Outlook (Table)</div>
+                    <table class="pred-table" style="width:100%; border-collapse: collapse;">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Severity</th>
-                                <th>What may happen</th>
-                                <th>Confidence</th>
-                                <th>Temp</th>
-                                <th>Hum</th>
-                                <th>Rain</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Date</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Severity</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Message</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Confidence</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Temp</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Hum</th>
+                                <th style="padding:10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align:left;">Rain</th>
                             </tr>
                         </thead>
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
@@ -199,6 +232,7 @@
         <p>Copyright © 2026 Climate EWS Zambia | Katongo Ngandu | SIN 2210679991</p>
     </footer>
 
+    <script src="templatemo-glass-admin-script.js"></script>
     <script src="predictions.js"></script>
     <script src="../assets/js/bfcache-reload.js"></script>
 </body>

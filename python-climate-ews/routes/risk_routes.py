@@ -199,6 +199,7 @@ def outlook():
 
         # Forecast per variable up to the furthest requested day.
         forecasts: dict[str, dict[str, float]] = {"temperature": {}, "humidity": {}, "rainfall": {}}
+        used_method_by_var: dict[str, str] = {}
         if max_offset > 0:
             for variable in ("temperature", "humidity", "rainfall"):
                 result = forecast_region_variable(
@@ -207,6 +208,7 @@ def outlook():
                     days=max_offset,
                     method=method,  # type: ignore[arg-type]
                 )
+                used_method_by_var[variable] = str(result.get("method") or method)
                 for f in result.get("forecast") or []:
                     forecasts[variable][str(f.get("date"))] = float(f.get("value") or 0.0)
 
@@ -224,7 +226,10 @@ def outlook():
                     "humidity": forecasts["humidity"].get(day.isoformat(), observed["humidity"]),
                     "rainfall": forecasts["rainfall"].get(day.isoformat(), observed["rainfall"]),
                 }
-                source = method
+                # If different variables used different fallback methods, expose that as "mixed".
+                used = {used_method_by_var.get("temperature", method), used_method_by_var.get("humidity", method), used_method_by_var.get("rainfall", method)}
+                used.discard(None)
+                source = used.pop() if len(used) == 1 else "mixed"
 
             prediction = RiskCalculator.predict_risk(
                 {
@@ -276,6 +281,7 @@ def outlook():
                 "start_date": start_date.isoformat(),
                 "days": days,
                 "method": method,
+                "forecast_methods_used": used_method_by_var,
                 "estimated": estimated,
                 "estimate_source": estimate_label,
                 "generated_at": datetime.utcnow().isoformat(),

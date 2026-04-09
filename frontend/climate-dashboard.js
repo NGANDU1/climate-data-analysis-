@@ -34,6 +34,8 @@
     let currentWeatherData = null;
     let riskPredictions = null;
     let lastRegionQuery = '';
+    let heroSelectedRegionKey = null;
+    let heroTrendData = null;
 
     // Canonical Zambia provinces (baseline markers so search always works)
     // Approximate coordinates (province capital / centroid).
@@ -107,6 +109,7 @@
             
             // Setup event listeners
             setupEventListeners();
+            initWeatherHero();
             
             // Auto-refresh every 60 seconds
             setInterval(refreshData, 60000);
@@ -129,6 +132,7 @@
                 currentWeatherData = result.data;
                 updateWeatherStats(result.data);
                 updateMapMarkers(result.data);
+                updateWeatherHeroFromWeatherData(result.data);
             }
         } catch (error) {
             console.error('Error loading weather data:', error);
@@ -575,6 +579,349 @@
                 }
             }
         });
+
+        updateWeatherHeroFromTrends(chartData);
+    }
+
+    // ============================================
+    // Weather-Style Hero Card (Index page)
+    // ============================================
+    function initWeatherHero() {
+        const dateEl = document.getElementById('hero-date');
+        if (dateEl) {
+            try {
+                dateEl.textContent = new Intl.DateTimeFormat(navigator.language || 'en-GB', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                }).format(new Date());
+            } catch (_) {
+                dateEl.textContent = new Date().toDateString();
+            }
+        }
+
+        const locationBtn = document.getElementById('hero-location-btn');
+        const locationMenu = document.getElementById('hero-location-menu');
+        if (!locationBtn || !locationMenu) return;
+        const heroCard = locationBtn.closest('.weather-hero-card');
+
+        function openMenu() {
+            locationMenu.hidden = false;
+            locationBtn.setAttribute('aria-expanded', 'true');
+            if (heroCard) heroCard.classList.add('is-location-open');
+        }
+
+        function closeMenu() {
+            locationMenu.hidden = true;
+            locationBtn.setAttribute('aria-expanded', 'false');
+            if (heroCard) heroCard.classList.remove('is-location-open');
+        }
+
+        locationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (locationMenu.hidden) openMenu();
+            else closeMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (locationMenu.hidden) return;
+            if (locationBtn.contains(e.target) || locationMenu.contains(e.target)) return;
+            closeMenu();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (locationMenu.hidden) return;
+            closeMenu();
+        });
+    }
+
+    function normalizeHeroRegionKey(name) {
+        return (name || '')
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/\bprovince\b/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+            .replace(/\s+/g, '-');
+    }
+
+    function computeNationalSummary(weatherData) {
+        const rows = Array.isArray(weatherData) ? weatherData : [];
+        if (rows.length === 0) return null;
+
+        const sum = rows.reduce((acc, row) => {
+            const temp = Number.parseFloat(row?.temperature);
+            const humidity = Number.parseFloat(row?.humidity);
+            const rainfall = Number.parseFloat(row?.rainfall);
+            const wind = Number.parseFloat(row?.wind_speed ?? row?.wind);
+            if (Number.isFinite(temp)) acc.temp += temp, acc.tempN += 1;
+            if (Number.isFinite(humidity)) acc.humidity += humidity, acc.humidityN += 1;
+            if (Number.isFinite(rainfall)) acc.rainfall += rainfall, acc.rainfallN += 1;
+            if (Number.isFinite(wind)) acc.wind += wind, acc.windN += 1;
+            return acc;
+        }, { temp: 0, tempN: 0, humidity: 0, humidityN: 0, rainfall: 0, rainfallN: 0, wind: 0, windN: 0 });
+
+        return {
+            region_name: 'National Overview',
+            temperature: sum.tempN ? (sum.temp / sum.tempN) : null,
+            humidity: sum.humidityN ? (sum.humidity / sum.humidityN) : null,
+            rainfall: sum.rainfallN ? (sum.rainfall / sum.rainfallN) : null,
+            wind_speed: sum.windN ? (sum.wind / sum.windN) : null
+        };
+    }
+
+    function deriveHeroCondition(row) {
+        const rainfall = Number.parseFloat(row?.rainfall);
+        const humidity = Number.parseFloat(row?.humidity);
+
+        if (Number.isFinite(rainfall) && rainfall >= 12) return { label: 'Storm with Rain', icon: '⛈️' };
+        if (Number.isFinite(rainfall) && rainfall >= 2) return { label: 'Rain', icon: '🌧️' };
+        if (Number.isFinite(humidity) && humidity >= 78) return { label: 'Cloudy', icon: '☁️' };
+        return { label: 'Sunny', icon: '☀️' };
+    }
+
+    function setHeroText(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = value;
+    }
+
+    function updateHeroLocationMenu(options, selectedKey) {
+        const menu = document.getElementById('hero-location-menu');
+        if (!menu) return;
+
+        menu.innerHTML = '';
+        options.forEach((opt) => {
+            const item = document.createElement('div');
+            item.className = 'weather-location-option';
+            item.setAttribute('role', 'option');
+            item.setAttribute('tabindex', '0');
+            item.dataset.regionKey = opt.key;
+            item.setAttribute('aria-selected', opt.key === selectedKey ? 'true' : 'false');
+            item.textContent = opt.label;
+            item.addEventListener('click', () => selectHeroRegion(opt.key));
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectHeroRegion(opt.key);
+                }
+            });
+            menu.appendChild(item);
+        });
+    }
+
+    function selectHeroRegion(regionKey) {
+        heroSelectedRegionKey = regionKey;
+        const menu = document.getElementById('hero-location-menu');
+        const btn = document.getElementById('hero-location-btn');
+        if (menu && btn) {
+            menu.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        updateWeatherHeroFromWeatherData(currentWeatherData);
+        if (heroTrendData) updateWeatherHeroFromTrends(heroTrendData);
+    }
+
+    function updateWeatherHeroFromWeatherData(weatherData) {
+        const root = document.getElementById('hero-temp');
+        if (!root) return;
+
+        const rows = Array.isArray(weatherData) ? weatherData : [];
+        const national = computeNationalSummary(rows);
+
+        const regionOptions = [];
+        regionOptions.push({ key: 'national', label: 'National Overview' });
+
+        const seen = new Set();
+        rows.forEach((row) => {
+            const name = row?.region_name || row?.name;
+            const key = normalizeHeroRegionKey(name);
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            regionOptions.push({ key, label: name });
+        });
+
+        // Default selection: Lusaka if available, otherwise national.
+        if (!heroSelectedRegionKey) {
+            const lusakaOpt = regionOptions.find((o) => o.key === 'lusaka');
+            heroSelectedRegionKey = lusakaOpt ? lusakaOpt.key : 'national';
+        }
+
+        updateHeroLocationMenu(regionOptions, heroSelectedRegionKey);
+
+        let selectedRow = null;
+        if (heroSelectedRegionKey === 'national') {
+            selectedRow = national;
+        } else {
+            selectedRow = rows.find((row) => normalizeHeroRegionKey(row?.region_name || row?.name) === heroSelectedRegionKey) || national;
+        }
+
+        const locationName = selectedRow?.region_name || selectedRow?.name || 'National Overview';
+        setHeroText('hero-location', locationName);
+
+        const temp = Number.parseFloat(selectedRow?.temperature);
+        setHeroText('hero-temp', Number.isFinite(temp) ? temp.toFixed(0) : '--');
+
+        const humidity = Number.parseFloat(selectedRow?.humidity);
+        setHeroText('hero-humidity', Number.isFinite(humidity) ? `${humidity.toFixed(0)}%` : '--%');
+
+        const wind = Number.parseFloat(selectedRow?.wind_speed ?? selectedRow?.wind);
+        setHeroText('hero-wind', Number.isFinite(wind) ? `${wind.toFixed(1)} km/h` : '-- km/h');
+
+        const condition = deriveHeroCondition(selectedRow);
+        setHeroText('hero-desc', condition.label);
+    }
+
+    function formatForecastDay(label, fallbackIndex) {
+        const tryDate = new Date(label);
+        if (!Number.isNaN(tryDate.getTime())) {
+            try {
+                return new Intl.DateTimeFormat(navigator.language || 'en-GB', { weekday: 'long' }).format(tryDate);
+            } catch (_) {
+                return tryDate.toDateString().split(' ')[0];
+            }
+        }
+        return `Day ${fallbackIndex + 1}`;
+    }
+
+    function updateWeatherHeroFromTrends(chartData) {
+        heroTrendData = chartData || null;
+
+        const list = document.getElementById('hero-forecast-list');
+        const labels = Array.isArray(chartData?.labels) ? chartData.labels : [];
+        const temps = chartData?.datasets?.temperature?.data || [];
+        const rainfall = chartData?.datasets?.rainfall?.data || [];
+
+        if (list && labels.length === 0) {
+            list.innerHTML = '';
+            for (let i = 0; i < 6; i += 1) {
+                const item = document.createElement('li');
+                item.className = 'weather-forecast-item';
+                item.innerHTML = `
+                    <div class="weather-forecast-day">--</div>
+                    <div class="weather-forecast-icon">—</div>
+                    <div class="weather-forecast-temp">--</div>
+                `;
+                list.appendChild(item);
+            }
+        }
+
+        if (list && labels.length > 0) {
+            list.innerHTML = '';
+
+            const start = Math.max(0, labels.length - 6);
+            for (let i = start; i < labels.length; i += 1) {
+                const t = Number.parseFloat(temps[i]);
+                const r = Number.parseFloat(rainfall[i]);
+                const icon = Number.isFinite(r) && r >= 10 ? '⛈️' : (Number.isFinite(r) && r >= 2 ? '🌧️' : '☁️');
+                const item = document.createElement('li');
+                item.className = 'weather-forecast-item';
+                item.innerHTML = `
+                    <div class="weather-forecast-day">${escapeHtml(formatForecastDay(labels[i], i))}</div>
+                    <div class="weather-forecast-icon">${icon}</div>
+                    <div class="weather-forecast-temp">${Number.isFinite(t) ? `${Math.round(t)}°` : '--'}</div>
+                `;
+                list.appendChild(item);
+            }
+        }
+
+        if (labels.length > 0 && temps.length > 0) {
+            renderHeroTrend(chartData);
+        }
+    }
+
+    function renderHeroTrend(chartData) {
+        const trend = document.getElementById('hero-trend');
+        const labelsEl = document.getElementById('hero-trend-labels');
+        if (!trend || !labelsEl) return;
+
+        const labels = Array.isArray(chartData?.labels) ? chartData.labels : [];
+        const temps = Array.isArray(chartData?.datasets?.temperature?.data) ? chartData.datasets.temperature.data : [];
+        if (labels.length === 0 || temps.length === 0) return;
+
+        const count = Math.min(8, temps.length, labels.length);
+        const sliceStart = Math.max(0, temps.length - count);
+        const slicedTemps = temps.slice(sliceStart);
+        const slicedLabels = labels.slice(sliceStart);
+
+        const width = 800;
+        const height = 84;
+        const padX = 18;
+        const padY = 12;
+        const max = Math.max(...slicedTemps.map((v) => Number.parseFloat(v)).filter(Number.isFinite));
+        const min = Math.min(...slicedTemps.map((v) => Number.parseFloat(v)).filter(Number.isFinite));
+        const range = (Number.isFinite(max) && Number.isFinite(min) && max !== min) ? (max - min) : 1;
+
+        const points = slicedTemps.map((raw, idx) => {
+            const v = Number.parseFloat(raw);
+            const x = padX + (idx * (width - padX * 2)) / Math.max(1, count - 1);
+            const y = padY + (height - padY * 2) * (1 - ((Number.isFinite(v) ? v : min) - min) / range);
+            return { x, y, v };
+        });
+
+        const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
+        const fillD = `${pathD} L${(padX + (width - padX * 2)).toFixed(2)} ${(height - padY).toFixed(2)} L${padX.toFixed(2)} ${(height - padY).toFixed(2)} Z`;
+
+        trend.innerHTML = `
+            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+                <path class="weather-trend-fill" d="${fillD}"></path>
+                <path class="weather-trend-path" d="${pathD}"></path>
+            </svg>
+        `;
+
+        const svg = trend.querySelector('svg');
+        const activeIndex = 1 < points.length ? 1 : 0;
+
+        points.forEach((p, idx) => {
+            const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', p.x.toFixed(2));
+            c.setAttribute('cy', p.y.toFixed(2));
+            c.setAttribute('r', '5.2');
+            c.classList.add('weather-trend-point');
+            if (idx === activeIndex) c.classList.add('active');
+            c.addEventListener('click', () => {
+                setHeroText('hero-temp', Number.isFinite(p.v) ? p.v.toFixed(0) : '--');
+                svg.querySelectorAll('.weather-trend-point').forEach((node) => node.classList.remove('active'));
+                c.classList.add('active');
+                labelsEl.querySelectorAll('.weather-trend-label').forEach((node) => node.classList.remove('active'));
+                const labelNode = labelsEl.querySelector(`[data-idx="${idx}"]`);
+                if (labelNode) labelNode.classList.add('active');
+            });
+            svg.appendChild(c);
+        });
+
+        labelsEl.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+        labelsEl.innerHTML = '';
+        slicedLabels.forEach((label, idx) => {
+            const div = document.createElement('div');
+            div.className = 'weather-trend-label' + (idx === activeIndex ? ' active' : '');
+            div.dataset.idx = String(idx);
+            div.textContent = compactTrendLabel(label);
+            labelsEl.appendChild(div);
+        });
+    }
+
+    function compactTrendLabel(label) {
+        const str = (label || '').toString();
+        if (str.includes(':')) return str.slice(0, 5);
+        const d = new Date(str);
+        if (!Number.isNaN(d.getTime())) {
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            return `${dd}/${mm}`;
+        }
+        return str.length > 6 ? str.slice(0, 6) : str;
+    }
+
+    function escapeHtml(text) {
+        return (text || '').toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // ============================================

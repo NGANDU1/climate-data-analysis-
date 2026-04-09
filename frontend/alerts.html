@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
     <title>Alerts History - Climate EWS Zambia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,18 +73,19 @@
                     </div>
                     <div class="table-wrapper">
                         <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Risk Level</th>
-                                    <th>Message</th>
-                                    <th>Region</th>
-                                    <th>Type</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="alerts-table-body">
-                                <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading alerts...</td></tr>
-                            </tbody>
+                                <thead>
+                                    <tr>
+                                        <th>Risk Level</th>
+                                        <th>Message</th>
+                                        <th>Region</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th style="width: 120px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alerts-table-body">
+                                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading alerts...</td></tr>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -132,7 +134,7 @@
             const tbody = document.getElementById('alerts-table-body');
             
             if (!alerts || alerts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No alerts found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No alerts found</td></tr>';
                 return;
             }
             
@@ -143,8 +145,33 @@
                     <td>${alert.region_name || 'National'}</td>
                     <td>${formatDisasterType(alert.disaster_type)}</td>
                     <td>${formatDate(alert.created_at)}</td>
+                    <td>
+                        <button class="card-btn" style="padding: 8px 12px; background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.35); color: #dc2626;"
+                            onclick="deleteAlert(${Number(alert.id)})">
+                            Delete
+                        </button>
+                    </td>
                 </tr>
             `).join('');
+        }
+
+        async function deleteAlert(alertId) {
+            try {
+                if (!Number.isFinite(Number(alertId))) return;
+                const ok = confirm('Delete this alert? This cannot be undone.');
+                if (!ok) return;
+
+                const res = await fetch(`${API_BASE}/alerts/${encodeURIComponent(alertId)}`, { method: 'DELETE' });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.success === false) {
+                    alert(json?.message || json?.error || 'Failed to delete alert');
+                    return;
+                }
+                await loadAlerts();
+            } catch (e) {
+                console.error('Delete failed:', e);
+                alert('Failed to delete alert');
+            }
         }
 
         function displayRecentAlerts(alerts) {

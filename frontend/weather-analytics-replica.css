@@ -1,0 +1,534 @@
+:root {
+  --wa-bg-0: #0a0f18;
+  --wa-bg-1: rgba(255, 255, 255, 0.06);
+  --wa-border: rgba(255, 255, 255, 0.10);
+  --wa-shadow: rgba(0, 0, 0, 0.55);
+  --wa-text: rgba(255, 255, 255, 0.92);
+  --wa-muted: rgba(255, 255, 255, 0.66);
+  --wa-orange: #ff8a3d;
+  --wa-orange-2: #ff6a00;
+  --wa-blue: #2aa6ff;
+  --wa-cyan: #12c2ff;
+}
+
+html[data-theme="dark"] body {
+  background: radial-gradient(1200px 600px at 35% 30%, rgba(255, 138, 61, 0.20), transparent 55%),
+    radial-gradient(800px 500px at 75% 70%, rgba(42, 166, 255, 0.18), transparent 55%),
+    linear-gradient(160deg, #050810, #0b1220 60%, #050810);
+}
+
+/* Remove template's animated background elements for a cleaner replica */
+.background,
+.orb {
+  display: none !important;
+}
+
+.wa-topnav {
+  margin: 16px 26px 0;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(12, 18, 32, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+}
+
+.wa-main {
+  margin-left: 0 !important;
+  padding: 18px 26px 26px !important;
+}
+
+.wa-shell {
+  border-radius: 32px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(10, 15, 24, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+}
+
+.wa-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+}
+
+.wa-card {
+  border-radius: 22px;
+  border: 1px solid var(--wa-border);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.40);
+}
+
+.wa-card-title {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+  padding: 16px 16px 10px;
+}
+
+/* LEFT main card */
+.wa-main-card {
+  padding: 16px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 138, 61, 0.95), rgba(255, 106, 0, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 28px 80px rgba(255, 106, 0, 0.18), 0 30px 90px rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.wa-main-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.wa-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.wa-updated {
+  font-weight: 600;
+}
+
+.wa-main-card-body {
+  padding: 18px 0 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.wa-main-icon {
+  font-size: 44px;
+  filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.25));
+}
+
+.wa-main-temp {
+  font-size: 54px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.wa-unit {
+  font-size: 24px;
+  opacity: 0.9;
+  margin-left: 8px;
+}
+
+.wa-main-desc {
+  font-size: 14px;
+  opacity: 0.95;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-main-card-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.wa-city-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wa-city-tab {
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 10px 10px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.92);
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  text-align: left;
+}
+
+.wa-city-tab:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.wa-city-tab.active {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.wa-city-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wa-city-temp {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.wa-dots {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding-right: 4px;
+}
+
+.wa-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.wa-dot.is-white { background: rgba(255, 255, 255, 0.96); }
+.wa-dot.is-cyan { background: var(--wa-cyan); }
+.wa-dot.is-blue { background: var(--wa-blue); }
+
+/* Left metrics */
+.wa-metrics {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.wa-metric-card {
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wa-metric-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+}
+
+.wa-metric-icon {
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+}
+
+.wa-metric-value {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* RIGHT week cards */
+.wa-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.wa-day-card {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 8px;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.wa-day-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.wa-day-card.active {
+  border-color: rgba(255, 138, 61, 0.50);
+  background: rgba(255, 138, 61, 0.08);
+}
+
+.wa-day-icon {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.wa-day-name {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.wa-day-temp {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.wa-mid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+}
+
+.wa-forecast {
+  padding-bottom: 14px;
+}
+
+.wa-chart-wrap {
+  padding: 0 14px 14px;
+}
+
+.wa-sun {
+  padding: 6px 12px 14px;
+}
+
+.wa-sun-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.14);
+  margin: 10px 4px 0;
+}
+
+.wa-sun-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 138, 61, 0.10);
+  border: 1px solid rgba(255, 138, 61, 0.18);
+}
+
+.wa-sun-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.70);
+  font-weight: 600;
+}
+
+.wa-sun-time {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 2px;
+}
+
+.wa-bottom {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+}
+
+.wa-air {
+  padding-bottom: 14px;
+}
+
+.wa-air-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 14px;
+  padding: 0 14px 14px;
+  align-items: center;
+}
+
+.wa-aqi-ring {
+  width: 170px;
+  height: 170px;
+  margin: 4px auto 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.wa-aqi-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.wa-aqi-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.10);
+  stroke-width: 10;
+}
+
+.wa-aqi-progress {
+  fill: none;
+  stroke: rgba(255, 205, 75, 0.85);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 289;
+  stroke-dashoffset: 120;
+  transition: stroke-dashoffset 300ms ease;
+}
+
+.wa-aqi-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.wa-aqi-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.76);
+  font-weight: 700;
+}
+
+.wa-aqi-value {
+  font-size: 30px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 4px;
+}
+
+.wa-aqi-foot {
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+  text-align: center;
+}
+
+.wa-pollutants {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.wa-pol {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.wa-pol-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+
+.wa-pol-dot.is-yellow { background: rgba(255, 205, 75, 0.95); }
+.wa-pol-dot.is-orange { background: rgba(255, 138, 61, 0.95); }
+.wa-pol-dot.is-lime { background: rgba(190, 255, 90, 0.95); }
+.wa-pol-dot.is-sun { background: rgba(255, 235, 59, 0.95); }
+.wa-pol-dot.is-red { background: rgba(255, 99, 99, 0.95); }
+.wa-pol-dot.is-amber { background: rgba(255, 180, 80, 0.95); }
+
+.wa-pol-value {
+  font-weight: 900;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wa-pol-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.64);
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+/* Rain chances */
+.wa-rain {
+  padding-bottom: 14px;
+}
+
+.wa-rain-list {
+  padding: 0 14px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.wa-rain-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.wa-rain-day {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.wa-rain-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+}
+
+.wa-rain-bar > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 138, 61, 0.85), rgba(255, 106, 0, 0.95));
+  box-shadow: 0 10px 22px rgba(255, 106, 0, 0.22);
+  transition: width 240ms ease;
+}
+
+.wa-rain-scale {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 14px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .wa-grid {
+    grid-template-columns: 1fr;
+  }
+  .wa-week {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .wa-mid,
+  .wa-bottom {
+    grid-template-columns: 1fr;
+  }
+  .wa-air-grid {
+    grid-template-columns: 1fr;
+  }
+  .wa-main {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .wa-week {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .wa-metrics {
+    grid-template-columns: 1fr;
+  }
+  .wa-main-card-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+

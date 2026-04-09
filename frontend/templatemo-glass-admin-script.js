@@ -8,6 +8,57 @@
     'use strict';
 
     // ============================================
+    // Top Navbar Injection (replaces sidebar menu)
+    // ============================================
+    function initTopnav() {
+        const dashboard = document.querySelector('.dashboard');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.querySelector('.main-content');
+        if (!dashboard || !sidebar || !main) return;
+
+        document.body.classList.add('topnav-enabled');
+        dashboard.classList.add('topnav-layout');
+
+        // If a page already has a topnav (e.g. custom replica pages), don't inject again.
+        if (dashboard.querySelector('.topnav')) {
+            return;
+        }
+
+        const page = (window.location.pathname.split('/').pop() || '').toLowerCase();
+        const isActive = (file) => page === '' ? file === 'index.html' : page === file;
+
+        const header = document.createElement('header');
+        header.className = 'topnav glass-card';
+        header.id = 'topnav';
+        header.innerHTML = `
+            <a class="topnav-brand" href="index.html" aria-label="Climate EWS Dashboard">
+                <div class="logo" aria-hidden="true">🌦️</div>
+                <span class="logo-text">Climate EWS</span>
+            </a>
+            <nav class="topnav-links" id="topnav-menu" aria-label="Primary navigation">
+                <a href="index.html" class="topnav-link ${isActive('index.html') ? 'active' : ''}">Dashboard</a>
+                <a href="alerts.html" class="topnav-link ${isActive('alerts.html') ? 'active' : ''}">Alerts</a>
+                <a href="predictions.html" class="topnav-link ${isActive('predictions.html') ? 'active' : ''}">Predictions</a>
+                <a href="analytics.html" class="topnav-link ${isActive('analytics.html') ? 'active' : ''}">Analytics</a>
+                <a href="settings.html" class="topnav-link ${isActive('settings.html') ? 'active' : ''}">Settings</a>
+                <a href="subscribe.html" class="topnav-link ${isActive('subscribe.html') ? 'active' : ''}">Subscribe</a>
+            </nav>
+            <div class="topnav-right">
+                <a href="/" class="topnav-link topnav-logout" data-action="logout">Logout</a>
+                <button class="mobile-menu-toggle topnav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        dashboard.insertBefore(header, dashboard.firstChild);
+    }
+
+    // ============================================
     // Theme Toggle
     // ============================================
     function initThemeToggle() {
@@ -32,8 +83,9 @@
             }
         }
         
-        // Check for saved theme preference or default to light (report style)
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        // Check for saved theme preference; allow per-page default via `data-default-theme`
+        const pageDefault = document.documentElement.getAttribute('data-default-theme');
+        const savedTheme = localStorage.getItem('theme') || pageDefault || 'light';
         setTheme(savedTheme);
         
         themeToggle.addEventListener('click', () => {
@@ -125,16 +177,37 @@
     function initMobileMenu() {
         const menuToggle = document.querySelector('.mobile-menu-toggle');
         const sidebar = document.getElementById('sidebar');
+        const topnavMenu = document.getElementById('topnav-menu');
+        const inTopnavLayout = !!topnavMenu && !!menuToggle && !!menuToggle.closest('.topnav');
         
-        if (menuToggle && sidebar) {
+        if (!menuToggle) return;
+
+        // Top-nav layout (menu dropdown)
+        if (inTopnavLayout) {
+            menuToggle.addEventListener('click', () => {
+                topnavMenu.classList.toggle('open');
+                menuToggle.setAttribute('aria-expanded', topnavMenu.classList.contains('open') ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!topnavMenu.classList.contains('open')) return;
+                if (topnavMenu.contains(e.target) || menuToggle.contains(e.target)) return;
+                topnavMenu.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+            });
+            return;
+        }
+
+        // Sidebar layout (default template)
+        if (sidebar) {
             menuToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('open');
             });
 
             // Close sidebar when clicking outside
             document.addEventListener('click', (e) => {
-                if (sidebar.classList.contains('open') && 
-                    !sidebar.contains(e.target) && 
+                if (sidebar.classList.contains('open') &&
+                    !sidebar.contains(e.target) &&
                     !menuToggle.contains(e.target)) {
                     sidebar.classList.remove('open');
                 }
@@ -543,6 +616,7 @@
     // Initialize All Functions
     // ============================================
     function init() {
+        initTopnav();
         initThemeToggle();
         initTiltEffect();
         initCounters();

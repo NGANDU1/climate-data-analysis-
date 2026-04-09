@@ -63,10 +63,10 @@
 /* Light Mode - Fresh Green Theme */
 [data-theme="light"] {
     /* Glass Colors - Light */
-    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-bg: rgba(255, 255, 255, 0.94);
     --glass-border: rgba(16, 185, 129, 0.2);
     --glass-shadow: rgba(0, 0, 0, 0.1);
-    --glass-hover: rgba(16, 185, 129, 0.15);
+    --glass-hover: rgba(255, 255, 255, 0.98);
     
     /* Background - Light with Green tint */
     --bg-dark: #fefefe;
@@ -81,7 +81,7 @@
 }
 
 [data-theme="light"] .orb {
-    opacity: 0.15;
+    opacity: 0.08;
 }
 
 [data-theme="light"] .glass-card::before {
@@ -419,6 +419,140 @@ a {
     justify-content: space-between;
     margin-bottom: 30px;
     gap: 20px;
+}
+
+/* ============================================
+   TOP NAV (Injected)
+============================================ */
+.topnav-enabled > .mobile-menu-toggle {
+    display: none !important;
+}
+
+.topnav-layout {
+    display: block;
+}
+
+.topnav-layout .sidebar {
+    display: none !important;
+}
+
+.topnav-layout .main-content {
+    margin-left: 0 !important;
+    padding-top: 18px;
+}
+
+.topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 18px 30px 0;
+    padding: 14px 16px;
+    border-radius: 18px;
+    position: sticky;
+    top: 14px;
+    z-index: 250;
+}
+
+.topnav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.topnav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background var(--transition-fast), color var(--transition-fast);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.topnav-link:hover {
+    background: var(--glass-hover);
+    color: var(--text-primary);
+}
+
+.topnav-link.active {
+    background: rgba(16, 185, 129, 0.14);
+    color: var(--text-primary);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.topnav-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topnav-logout {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.topnav-toggle {
+    display: none;
+    position: static;
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    border-radius: 14px;
+}
+
+/* Override the template floating mobile toggle styles when used inside topnav */
+.topnav .mobile-menu-toggle {
+    bottom: auto;
+    right: auto;
+    box-shadow: none;
+}
+
+@media (max-width: 1024px) {
+    .topnav {
+        margin: 14px 16px 0;
+    }
+
+    .topnav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .topnav-links {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        padding: 12px;
+        border-radius: 18px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .topnav-links.open {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .topnav-link {
+        justify-content: space-between;
+    }
 }
 
 .page-title {

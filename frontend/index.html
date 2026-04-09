@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-default-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
     <title>Climate Early Warning System - Zambia</title>
     <meta name="description" content="Real-time weather monitoring and disaster alerts for Zambia">
     
@@ -20,12 +21,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <link rel="stylesheet" href="templatemo-glass-admin-style.css">
+    <link rel="stylesheet" href="weather-dashboard.css">
     
     <style>
         /* Climate EWS Custom Styles */
         :root {
             --climate-green: #10b981;
             --climate-green-dark: #059669;
+            --climate-yellow: #f59e0b;
+            --climate-yellow-dark: #d97706;
             --climate-black: #0a0f0d;
             --climate-white: #ffffff;
             --risk-low: #22c55e;
@@ -120,7 +124,7 @@
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.0); }
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/gov-theme.css">
+    <!-- gov-theme.css intentionally not loaded on the dashboard so it can use the glass/weather hero design -->
 </head>
 <body>
     <!-- Animated Background -->
@@ -129,7 +133,34 @@
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
 
-    <div class="dashboard">
+    <div class="dashboard dashboard-weather">
+        <!-- Top Navigation -->
+        <header class="topnav glass-card" id="topnav">
+            <a class="topnav-brand" href="index.html" aria-label="Climate EWS Dashboard">
+                <div class="logo" style="background: linear-gradient(135deg, var(--climate-green), var(--climate-green-dark));">🌦️</div>
+                <span class="logo-text logo-text-climate">Climate EWS</span>
+            </a>
+
+            <nav class="topnav-links" id="topnav-menu" aria-label="Primary navigation">
+                <a href="index.html" class="topnav-link active">Dashboard</a>
+                <a href="alerts.html" class="topnav-link">Alerts</a>
+                <a href="predictions.html" class="topnav-link">Predictions</a>
+                <a href="analytics.html" class="topnav-link">Analytics</a>
+                <a href="settings.html" class="topnav-link">Settings</a>
+                <a href="subscribe.html" class="topnav-link">Subscribe</a>
+            </nav>
+
+            <div class="topnav-right">
+                <a href="/" class="topnav-link topnav-logout" id="logout-link" data-action="logout">Logout</a>
+                <button class="mobile-menu-toggle topnav-toggle" type="button" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -204,7 +235,7 @@
                     <span class="nav-section-title">Account</span>
                     <ul>
                         <li class="nav-item">
-                            <a href="/" class="nav-link" id="logout-link" data-action="logout">
+                            <a href="/" class="nav-link" id="logout-link-sidebar" data-action="logout">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                                     <polyline points="16 17 21 12 16 7"/>
@@ -265,6 +296,76 @@
                     </button>
                 </div>
             </nav>
+
+            <!-- Weather-style hero card (inspired by provided reference) -->
+            <section class="weather-hero-card" aria-label="Current conditions">
+                <div class="weather-hero-top">
+                    <button class="weather-location-pill" type="button" id="hero-location-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="weather-location-icon">📍</span>
+                        <span class="weather-location-text" id="hero-location">National Overview</span>
+                        <svg class="weather-location-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="weather-location-menu" id="hero-location-menu" role="listbox" tabindex="-1" hidden></div>
+                    <div class="weather-date" id="hero-date">--</div>
+                </div>
+
+                <div class="weather-hero-body">
+                    <div class="weather-hero-left">
+                        <div class="weather-temp">
+                            <span id="hero-temp">--</span><span class="weather-temp-unit">°C</span>
+                        </div>
+                        <div class="weather-desc" id="hero-desc">Loading conditions...</div>
+                        <div class="weather-metrics">
+                            <div class="weather-metric">
+                                <div class="weather-metric-label">Wind</div>
+                                <div class="weather-metric-value" id="hero-wind">-- km/h</div>
+                            </div>
+                            <div class="weather-metric">
+                                <div class="weather-metric-label">Humidity</div>
+                                <div class="weather-metric-value" id="hero-humidity">--%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="weather-hero-center" aria-hidden="true">
+                        <div class="weather-icon" id="hero-icon">
+                            <svg viewBox="0 0 240 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feDropShadow dx="0" dy="18" stdDeviation="12" flood-color="rgba(0,0,0,0.5)"/>
+                                    </filter>
+                                    <linearGradient id="cloudGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+                                        <stop offset="1" stop-color="#cbd5e1" stop-opacity="0.85"/>
+                                    </linearGradient>
+                                    <linearGradient id="boltGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0" stop-color="#fbbf24"/>
+                                        <stop offset="1" stop-color="#f97316"/>
+                                    </linearGradient>
+                                </defs>
+                                <g filter="url(#shadow)">
+                                    <path d="M85 120c-20 0-36-14-36-33 0-17 12-30 29-33 6-21 27-36 52-36 25 0 46 15 52 36 18 3 31 16 31 33 0 19-16 33-36 33H85z" fill="url(#cloudGrad)"/>
+                                    <path d="M136 112l-22 36h18l-14 32 40-52h-18l16-16z" fill="url(#boltGrad)"/>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <aside class="weather-hero-right" aria-label="Daily forecast">
+                        <div class="weather-forecast-card">
+                            <div class="weather-forecast-title">Next days</div>
+                            <ul class="weather-forecast-list" id="hero-forecast-list"></ul>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="weather-hero-bottom" aria-label="Trend">
+                    <div class="weather-trend" id="hero-trend"></div>
+                    <div class="weather-trend-labels" id="hero-trend-labels"></div>
+                </div>
+            </section>
 
             <!-- Risk Summary Banner -->
             <div id="national-risk-summary" class="glass-card clickable-card" role="button" tabindex="0" title="Click to view the regional risk map and latest alerts" style="margin-bottom: 24px; border-left: 4px solid var(--climate-yellow);">
